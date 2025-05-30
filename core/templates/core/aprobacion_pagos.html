@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Aprobación de Pagos</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- NAVBAR (copia el de tus otras páginas) -->
+    <nav class="bg-white shadow mb-8">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600">FERREMAS</a>
+            <div class="flex space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Inicio</a>
+                <a href="{% url 'listaproductos' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Productos</a>
+                <a href="{% url 'aprobacion_pagos' %}" class="text-orange-600 font-semibold border-b-2 border-orange-600">Pagos</a>
+                <a href="{% url 'logout' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Cerrar sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-6 text-orange-600">Aprobación de Pagos por Transferencia</h1>
+        <div class="overflow-x-auto rounded shadow bg-white">
+            <table class="min-w-full">
+                <thead class="bg-orange-100">
+                    <tr>
+                        <th class="py-2 px-4">ID Pago</th>
+                        <th class="py-2 px-4">Pedido</th>
+                        <th class="py-2 px-4">Cliente</th>
+                        <th class="py-2 px-4">Monto</th>
+                        <th class="py-2 px-4">Fecha</th>
+                        <th class="py-2 px-4">Estado</th>
+                        <th class="py-2 px-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos %}
+                    <tr class="hover:bg-orange-50 transition">
+                        <td class="py-2 px-4">{{ pago.pago_id }}</td>
+                        <td class="py-2 px-4">{{ pago.pedido_id }}</td>
+                        <td class="py-2 px-4">{{ pago.cliente }}</td>
+                        <td class="py-2 px-4 font-semibold text-green-700">${{ pago.monto }}</td>
+                        <td class="py-2 px-4">{{ pago.fecha_pago }}</td>
+                        <td class="py-2 px-4">
+                            <span class="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-semibold">
+                                {{ pago.estado_pago }}
+                            </span>
+                        </td>
+                        <td class="py-2 px-4">
+                            <form method="post" action="{% url 'aprobar_pago' pago.pago_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">Aprobar</button>
+                            </form>
+                            <form method="post" action="{% url 'rechazar_pago' pago.pago_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">Rechazar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-gray-500">No hay pagos pendientes.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

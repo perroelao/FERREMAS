@@ -1,0 +1,245 @@
+/* Estilos Generales y Clases de Tailwind (si no usas el CDN en producción) */
+/* Puedes importar Tailwind aquí si lo tienes instalado localmente: */
+/* @import 'tailwindcss/base'; */
+/* @import 'tailwindcss/components'; */
+/* @import 'tailwindcss/utilities'; */
+
+/* Estilos básicos para mejorar la apariencia si no se usa un framework CSS completo o para complementar Tailwind */
+body {
+    font-family: 'Inter', sans-serif; /* 'Inter' es una buena fuente moderna, asegúrate de importarla si no usas Tailwind que la incluye */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f9fafb; /* Gris claro de Tailwind */
+    color: #1f2937; /* Gris oscuro de Tailwind */
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px; /* Contenedor principal */
+    margin: 0 auto;
+    padding: 20px 0; /* Espaciado vertical dentro del contenedor */
+}
+
+/* Estilos para Botones */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px; /* Bordes redondeados */
+    text-decoration: none;
+    font-weight: 600; /* Semi-negrita */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transiciones suaves */
+    cursor: pointer;
+    border: none; /* Quitar borde por defecto si es un <button> */
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #D97706; /* Naranja oscuro para ferretería (Tailwind orange-600) */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #B45309; /* Naranja más oscuro al pasar el mouse (Tailwind orange-700) */
+    transform: translateY(-2px); /* Efecto ligero de elevación */
+}
+
+.btn-secondary {
+    background-color: #4b5563; /* Gris medio de Tailwind (gray-600) */
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #374151; /* Gris más oscuro al pasar el mouse (gray-700) */
+    transform: translateY(-2px);
+}
+
+/* Estilos para Tarjetas de Producto */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Diseño de cuadrícula responsivo */
+    gap: 20px; /* Espacio entre tarjetas */
+}
+
+.product-card {
+    border: 1px solid #e5e7eb; /* Borde gris claro (gray-200) */
+    border-radius: 12px; /* Bordes más redondeados */
+    padding: 15px;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); /* Sombra sutil */
+    display: flex; /* Para alinear el botón al final si es necesario */
+    flex-direction: column;
+    justify-content: space-between; /* Asegura que el contenido se distribuya y el botón quede abajo */
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+.product-card img {
+    max-width: 100%;
+    height: 200px; /* Altura fija para las imágenes de producto */
+    object-fit: contain; /* Asegura que toda la imagen sea visible, ajusta a 'cover' si prefieres llenar el espacio */
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.product-card h3 {
+    font-size: 1.1rem; /* Tamaño del título del producto */
+    margin: 10px 0;
+    color: #111827; /* Gris muy oscuro (gray-900) */
+    font-weight: 600;
+}
+
+.product-card .price {
+    font-size: 1.2rem; /* Tamaño del precio */
+    font-weight: bold;
+    color: #16a34a; /* Verde para precios (green-600) */
+    margin-bottom: 5px;
+}
+
+.product-card .price-old {
+    text-decoration: line-through;
+    color: #9ca3af; /* Gris claro para precio antiguo (gray-400) */
+    font-size: 0.9rem;
+    margin-right: 5px;
+    margin-bottom: 10px;
+}
+
+/* Iconos del Header */
+.header-actions .cart-icon,
+.header-actions .user-icon {
+    position: relative; /* Para posicionar el contador del carrito */
+}
+
+.header-actions .cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ef4444; /* Rojo para el contador (red-500) */
+    color: white;
+    border-radius: 50%;
+    padding: 1px 5px; /* Ajuste fino del padding */
+    font-size: 0.70rem; /* Tamaño de fuente del contador */
+    font-weight: bold;
+    line-height: 1.2; /* Ajuste de altura de línea */
+    min-width: 18px; /* Ancho mínimo para que se vea bien con un dígito */
+    text-align: center;
+}
+
+
+/* Estilos para el Pie de Página (Footer) */
+.site-footer {
+    background-color: #1f2937; /* Gris oscuro de Tailwind (gray-800) */
+    color: #e5e7eb; /* Gris claro para texto (gray-200) */
+    padding: 40px 0;
+}
+
+.footer-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas responsivas */
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.footer-column h4 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-column ul li a {
+    color: #9ca3af; /* Gris medio para enlaces (gray-400) */
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.footer-column ul li a:hover {
+    color: #D97706; /* Naranja al pasar el mouse */
+}
+
+.social-media img,
+.payment-methods img {
+    height: 24px; /* Tamaño de iconos sociales y de pago */
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.footer-bottom {
+    text-align: center;
+    border-top: 1px solid #374151; /* Línea divisoria (gray-700) */
+    padding-top: 20px;
+    font-size: 0.9rem;
+    color: #9ca3af; /* Gris medio (gray-400) */
+}
+
+/* Estilos para Categorías Destacadas */
+.category-item img {
+    transition: transform 0.3s ease; /* Transición para el efecto hover en la imagen */
+}
+.category-item:hover img {
+    transform: scale(1.05); /* Agranda ligeramente la imagen al pasar el mouse */
+}
+
+/* Hero Section específica para ferretería */
+.hero-section {
+    /* Los estilos de gradiente ya están en Tailwind, pero podrías añadir una imagen de fondo aquí si lo deseas */
+    /* background-image: url('../images/hero_ferreteria.jpg'); */
+    /* background-size: cover; */
+    /* background-position: center; */
+}
+
+/* Ajustes para el menú móvil si no usas Tailwind para todo */
+#mobile-menu {
+    /* Estilos para asegurar que se oculte y muestre correctamente */
+}
+.hidden { /* Tailwind usa esta clase, pero por si acaso */
+    display: none;
+}
+
+/* Placeholder para imágenes si no cargan */
+img[alt^="[Image of"] { /* Selecciona imágenes cuyo alt comienza con "[Image of" */
+    background-color: #e5e7eb; /* Un color de fondo gris claro */
+    color: #6b7280; /* Texto gris oscuro */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+img[alt^="[Image of"]::before {
+    content: attr(alt); /* Muestra el texto del alt */
+    padding: 10px;
+}
+
+/* Asegurar que el logo y los íconos del header sean clickeables y tengan buen tamaño */
+header .flex-shrink-0 a,
+header .flex-shrink-0 img {
+    display: block; /* Asegura que el enlace ocupe el espacio de la imagen */
+}
+
+header .cart-icon svg,
+header .user-icon svg,
+header #mobile-menu-button svg {
+    width: 1.75rem; /* 28px */
+    height: 1.75rem; /* 28px */
+}
+
+/* Mejoras en la barra de búsqueda */
+header input[type="search"] {
+    appearance: none; /* Quita estilos por defecto del navegador */
+}

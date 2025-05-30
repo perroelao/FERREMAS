@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Usuarios</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- NAVBAR -->
+    <nav class="bg-white shadow mb-8">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600">FERREMAS</a>
+            <div class="flex space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Inicio</a>
+                <a href="{% url 'listaproductos' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Productos</a>
+                <a href="{% url 'admin_usuarios' %}" class="text-orange-600 font-semibold border-b-2 border-orange-600">Usuarios</a>
+                <a href="{% url 'logout' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Cerrar sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-6 text-orange-600">Gestión de Usuarios</h1>
+
+        <!-- Formulario agregar usuario -->
+        <form method="post" action="{% url 'agregar_usuario' %}" class="bg-white p-6 rounded shadow mb-8 border border-orange-200">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <input name="rut" placeholder="RUT" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                <input name="nombre" placeholder="Nombre" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                <input name="apellido_p" placeholder="Apellido Paterno" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                <input name="apellido_m" placeholder="Apellido Materno" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <input name="snombre" placeholder="Segundo Nombre" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <input name="email" placeholder="Email" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                <input name="fono" placeholder="Teléfono" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <input name="direccion" placeholder="Dirección" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <input name="password" type="password" placeholder="Contraseña" class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+            </div>
+            <button type="submit" class="mt-4 bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">Agregar Usuario</button>
+        </form>
+
+        <!-- Tabla de usuarios -->
+        <div class="overflow-x-auto rounded shadow bg-white border border-orange-200">
+            <table class="min-w-full">
+                <thead class="bg-orange-100">
+                    <tr>
+                        <th class="py-2 px-4">ID</th>
+                        <th class="py-2 px-4">RUT</th>
+                        <th class="py-2 px-4">Nombre</th>
+                        <th class="py-2 px-4">Email</th>
+                        <th class="py-2 px-4">Rol</th>
+                        <th class="py-2 px-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr class="hover:bg-orange-50 transition">
+                        <td class="py-2 px-4">{{ usuario.id_usuario }}</td>
+                        <td class="py-2 px-4">{{ usuario.rut }}</td>
+                        <td class="py-2 px-4">{{ usuario.nombre }} {{ usuario.apellido_p }}</td>
+                        <td class="py-2 px-4">{{ usuario.email }}</td>
+                        <td class="py-2 px-4">{{ usuario.rol_id }}</td>
+                        <td class="py-2 px-4">
+                            <form method="post" action="{% url 'editar_usuario' usuario.id_usuario %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="text-blue-600 hover:underline">Editar</button>
+                            </form>
+                            <form method="post" action="{% url 'eliminar_usuario' usuario.id_usuario %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('¿Eliminar usuario?')">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-gray-500">No hay usuarios registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
