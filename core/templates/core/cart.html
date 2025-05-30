@@ -11,8 +11,8 @@
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
-            <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600">
-                <img src="https://placehold.co/150x50/D97706/FFFFFF?text=MiFerretería&font=Inter" alt="Logo Mi Ferretería Online" class="h-10">
+            <a href="{% url 'home' %}" class="text-3xl font-extrabold text-orange-600 flex items-center gap-2">
+                <img src="{% static 'assets/img/logo.png' %}" alt="Logo Mi Ferretería Online" class="h-20 w-auto">
             </a>
             <a href="{% url 'listaproductos' %}" class="btn btn-secondary px-6 py-2 rounded-lg font-semibold bg-orange-600 text-white hover:bg-orange-700">Seguir Comprando</a>
         </div>
@@ -41,7 +41,13 @@
             </table>
         </div>
         <div id="cart-summary" class="flex flex-col items-end mb-8">
-            <!-- Aquí se inyecta el resumen y el botón de checkout -->
+            <!-- Aquí se inyecta el resumen -->
+        </div>
+        <div id="finalizar-compra-container" class="flex justify-end" style="display:none;">
+            <a href="{% url 'confirmar_pedido' %}" id="finalizar-compra-btn"
+               class="bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition mt-2">
+                Finalizar compra
+            </a>
         </div>
     </main>
 
@@ -58,6 +64,7 @@
         const cartEmpty = document.getElementById('cart-empty');
         const cartItems = document.getElementById('cart-items');
         const cartSummary = document.getElementById('cart-summary');
+        const finalizarCompraContainer = document.getElementById('finalizar-compra-container');
 
         tbody.innerHTML = '';
         let total = 0;
@@ -67,11 +74,13 @@
             cartEmpty.classList.remove('hidden');
             cartItems.classList.add('hidden');
             cartSummary.classList.add('hidden');
+            finalizarCompraContainer.style.display = 'none';
             return;
         } else {
             cartEmpty.classList.add('hidden');
             cartItems.classList.remove('hidden');
             cartSummary.classList.remove('hidden');
+            finalizarCompraContainer.style.display = 'flex';
         }
 
         cart.forEach((item, idx) => {
@@ -80,10 +89,7 @@
             totalArticulos += item.cantidad;
             tbody.innerHTML += `
                 <tr>
-                    <td class="px-4 py-2 flex items-center">
-                        <img src="${item.imagen || 'https://placehold.co/60x60/F59E0B/FFFFFF?text=' + encodeURIComponent(item.nombre)}" alt="${item.nombre}" class="w-12 h-12 rounded mr-4">
-                        <span>${item.nombre}</span>
-                    </td>
+                    <td class="px-4 py-2">${item.nombre}</td>
                     <td class="px-4 py-2 text-center">
                         <input type="number" min="1" value="${item.cantidad}" data-idx="${idx}" class="w-16 text-center border rounded cantidad-input">
                     </td>
@@ -96,23 +102,17 @@
             `;
         });
 
-        // Aplica descuento visual si corresponde
-        let descuento = 0;
         let totalConDescuento = total;
         let descuentoHTML = '';
         if (totalArticulos >= 4) {
-            descuento = 0.10;
-            totalConDescuento = Math.round(total * (1 - descuento));
-            descuentoHTML = `<p class="text-green-700 font-semibold mb-1">Descuento aplicado: 10%</p>
-                             <p class="text-lg font-bold mb-2">Total con descuento: <span class="text-green-700">${formatPrice(totalConDescuento)}</span></p>`;
+            const descuentoValor = Math.round(total * 0.10);
+            totalConDescuento = total - descuentoValor;
+            descuentoHTML = `<p class="text-green-700 font-semibold mb-1">Descuento aplicado: -${formatPrice(descuentoValor)}</p>`;
         }
 
         cartSummary.innerHTML = `
+            <p class="text-xl font-semibold mb-2">Total de la compra: <span id="cart-total" class="text-green-600">${formatPrice(totalConDescuento)}</span></p>
             ${descuentoHTML}
-            <p class="text-xl font-semibold mb-2">Total: <span id="cart-total" class="text-green-600">${formatPrice(totalConDescuento)}</span></p>
-            <button id="checkout-btn" class="bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">
-                Finalizar compra
-            </button>
         `;
 
         // Listeners para eliminar y cambiar cantidad
@@ -131,64 +131,6 @@
                 localStorage.setItem('cart', JSON.stringify(cart));
                 loadCart();
             };
-        });
-
-        // Asigna el evento al botón de checkout
-        document.getElementById('checkout-btn').onclick = checkoutHandler;
-    }
-
-    // Handler para finalizar compra con descuento aplicado
-    function checkoutHandler() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const cliente_id = "{{ request.session.usuario_id }}";
-        const sucursal_retiro = 1;
-        const vendedor_id = 2;
-        const metodo_pago_id = 4;
-
-        if (!cliente_id) {
-            alert('Debes iniciar sesión para comprar.');
-            window.location.href = "{% url 'login' %}";
-            return;
-        }
-        if (cart.length === 0) {
-            alert('Tu carrito está vacío.');
-            return;
-        }
-
-        const totalArticulos = cart.reduce((acc, item) => acc + item.cantidad, 0);
-        let descuento = 0;
-        if (totalArticulos >= 4) {
-            descuento = 0.10;
-        }
-
-        const productos = cart.map(item => ({
-            producto_id: parseInt(item.producto_id),
-            cantidad: item.cantidad,
-            precio_unit: descuento > 0
-                ? Math.round(item.precio_unit * (1 - descuento))
-                : item.precio_unit
-        }));
-
-        fetch('http://localhost:3002/crear_pedido', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                cliente_id: parseInt(cliente_id),
-                sucursal_retiro: sucursal_retiro,
-                vendedor_id: vendedor_id,
-                productos: productos,
-                metodo_pago_id: metodo_pago_id
-            })
-        })
-        .then(res => res.json().then(data => ({ok: res.ok, data})))
-        .then(({ok, data}) => {
-            if (!ok) throw new Error(data.error || 'No se pudo crear el pedido');
-            alert('¡Pedido realizado con éxito! ID: ' + data.pedido_id);
-            localStorage.removeItem('cart');
-            window.location.href = "{% url 'home' %}";
-        })
-        .catch(err => {
-            alert('Error al crear el pedido: ' + err.message);
         });
     }
 

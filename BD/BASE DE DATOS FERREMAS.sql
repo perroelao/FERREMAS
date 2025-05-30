@@ -226,14 +226,14 @@ VALUES (5, 'Contador');
 
 -- Insertar usuarios con rol Cliente
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (1, '12345678-9', 'Juan', 'Pérez', 'Gómez', 'Carlos', 'juan.perez@gmail.com', '987654321', 'Calle Ficticia 123, Santiago, Chile', 'hashed_password_1', 1);
+VALUES (1, '12345678-9', 'Juan', 'Pérez', 'Gómez', 'Carlos', 'juan.perez@gmail.com', '987654321', 'Calle Ficticia 123, Santiago, Chile', 'juan', 1);
 
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
 VALUES (2, '23456789-0', 'Ana', 'Martínez', 'Lopez', 'Fernanda', 'ana.martinez@gmail.com', '912345678', 'Av. Los Leones 456, Santiago, Chile', 'hashed_password_2', 1);
 
 -- Insertar usuarios con rol Vendedor
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gmail.com', '923456789', 'Calle Bellavista 789, Valparaíso, Chile', 'hashed_password_3', 2);
+VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gmail.com', '923456789', 'Calle Bellavista 789, Valparaíso, Chile', 'carlos', 2);
 
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
 VALUES (4, '45678901-2', 'Lucía', 'Rodríguez', 'Paredes', 'Mariana', 'lucia.rodriguez@gmail.com', '934567890', 'Calle Aldea 321, Viña del Mar, Chile', 'hashed_password_4', 2);
@@ -243,11 +243,11 @@ INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, e
 VALUES (5, '56789012-3', 'Pedro', 'Sánchez', 'Bravo', 'Roberto', 'pedro.sanchez@gmail.com', '945678901', 'Av. Providencia 456, Santiago, Chile', 'hashed_password_5', 3);
 
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (6, '67890123-4', 'Carla', 'Fernández', 'Muñoz', 'Gabriela', 'carla.fernandez@gmail.com', '956789012', 'Calle San Martín 987, Temuco, Chile', 'hashed_password_6', 3);
+VALUES (6, '67890123-4', 'Carla', 'Fernández', 'Muñoz', 'Gabriela', 'carla.fernandez@gmail.com', '956789012', 'Calle San Martín 987, Temuco, Chile', 'carla', 3);
 
 -- Insertar usuarios con rol Bodeguero
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (7, '78901234-5', 'Luis', 'Méndez', 'Ríos', 'Daniel', 'luis.mendez@gmail.com', '967890123', 'Av. O’Higgins 1234, Concepción, Chile', 'hashed_password_7', 4);
+VALUES (7, '78901234-5', 'Luis', 'Méndez', 'Ríos', 'Daniel', 'luis.mendez@gmail.com', '967890123', 'Av. O’Higgins 1234, Concepción, Chile', 'luis', 4);
 
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
 VALUES (8, '89012345-6', 'María', 'Castro', 'Fuentes', 'Patricia', 'maria.castro@gmail.com', '978901234', 'Calle Prat 567, Antofagasta, Chile', 'hashed_password_8', 4);
@@ -257,7 +257,7 @@ INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, e
 VALUES (9, '90123456-7', 'Ricardo', 'López', 'Vega', 'Eduardo', 'ricardo.lopez@gmail.com', '989012345', 'Calle Libertador 1010, La Serena, Chile', 'hashed_password_9', 5);
 
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (10, '01234567-8', 'Sofía', 'Ramírez', 'Pizarro', 'Elena', 'sofia.ramirez@gmail.com', '990123456', 'Calle Valparaíso 202, Punta Arenas, Chile', 'hashed_password_10', 5);
+VALUES (10, '01234567-8', 'Sofía', 'Ramírez', 'Pizarro', 'Elena', 'sofia.ramirez@gmail.com', '990123456', 'Calle Valparaíso 202, Punta Arenas, Chile', 'sofia', 5);
 
 -- REGIONES
 INSERT INTO REGION (region_id, nombre) VALUES (1, 'Región Metropolitana');
@@ -321,5 +321,3 @@ INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (
 -- PAGOS
 
 commit;
-
-SELECT * FROM PEDIDO;

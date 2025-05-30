@@ -11,8 +11,8 @@
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-white shadow-md sticky top-0 z-50 mb-8">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
-            <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600">
-                <img src="https://placehold.co/150x50/D97706/FFFFFF?text=MiFerretería&font=Inter" alt="Logo Mi Ferretería Online" class="h-10">
+            <a href="{% url 'home' %}" class="text-3xl font-extrabold text-orange-600 flex items-center gap-2">
+                <img src="{% static 'assets/img/logo.png' %}" alt="Logo Mi Ferretería Online" class="h-20 w-auto">
             </a>
             <a href="{% url 'carrito' %}" class="btn btn-secondary px-6 py-2 rounded-lg font-semibold bg-orange-600 text-white hover:bg-orange-700">
                 Ver Carrito
@@ -29,6 +29,32 @@
     </main>
 
     <script>
+    // Lógica robusta para agregar al carrito usando data-*
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-to-cart')) {
+            const id = e.target.dataset.id;
+            const nombre = e.target.dataset.nombre;
+            const precio = parseFloat(e.target.dataset.precio);
+            const imagen = e.target.dataset.imagen;
+
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            let prod = cart.find(p => p.producto_id == id);
+            if (prod) {
+                prod.cantidad += 1;
+            } else {
+                cart.push({
+                    producto_id: id,
+                    nombre: nombre,
+                    precio_unit: precio,
+                    cantidad: 1,
+                    imagen: imagen
+                });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert('Producto agregado al carrito');
+        }
+    });
+
     fetch('http://localhost:3002/productos/')
         .then(response => response.json())
         .then(data => {
@@ -37,8 +63,19 @@
             data.forEach(producto => {
                 contenedor.innerHTML += `
                     <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
+                        ${producto.imagen ? `<img src="${producto.imagen}" alt="${producto.nombre}" class="mb-4 w-32 h-32 object-contain rounded">` : ''}
                         <span class="block text-lg font-semibold text-gray-800 mb-2">${producto.nombre}</span>
                         <span class="block text-xl font-bold text-green-600 mb-2">$${producto.precio.toLocaleString('es-CL')}</span>
+                        <div class="flex flex-col gap-2 w-full mt-4">
+                            <a href="/producto/${producto.id}/" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-center">Ver producto</a>
+                            <button
+                                class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition w-full add-to-cart"
+                                data-id="${producto.id}"
+                                data-nombre="${producto.nombre.replace(/"/g, '&quot;')}"
+                                data-precio="${producto.precio}"
+                                data-imagen="${producto.imagen ? producto.imagen : ''}"
+                            >Añadir al Carrito</button>
+                        </div>
                     </div>
                 `;
             });

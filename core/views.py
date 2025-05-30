@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import connection
 from django.views.decorators.http import require_POST
+import openpyxl
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
 from django.contrib.auth import logout as django_logout
 
 # -------------------------------------------------------------------
@@ -26,7 +29,7 @@ def listaproductos(request):
         return redirect('home')  # Redirigir a la página de inicio en caso de error
     
 def aprobacion_pagos(request):
-    # Solo pagos con método transferencia (id=4) y estado pendiente (id=2)
+    # Solo pagos con método transferencia (id=4), estado pendiente (id=2) y PEDIDO aprobado (estado_id=3)
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT p.pago_id, p.pedido_id, p.monto, p.fecha_pago, p.estado_pago_id, ep.nombre AS estado_pago,
@@ -37,7 +40,9 @@ def aprobacion_pagos(request):
             JOIN METODO_PAGO mp ON p.metodo_pago_id = mp.metodo_pago
             JOIN PEDIDO ped ON p.pedido_id = ped.pedido_id
             JOIN USUARIO u ON ped.cliente_id = u.id_usuario
-            WHERE p.metodo_pago_id = 4 AND p.estado_pago_id = 2
+            WHERE p.metodo_pago_id = 4
+              AND p.estado_pago_id = 2
+              AND ped.estado_id = 3
             ORDER BY p.fecha_pago DESC
         """)
         pagos = dictfetchall(cursor)
@@ -54,14 +59,14 @@ def dictfetchall(cursor):
 @require_POST
 def aprobar_pago(request, pago_id):
     with connection.cursor() as cursor:
-        cursor.execute("UPDATE PAGO SET estado_pago_id = 3 WHERE pago_id = %s", [pago_id])  # 3 = Aprobado
+        cursor.execute("UPDATE PAGO SET estado_pago_id = 1 WHERE pago_id = %s", [pago_id])  # 3 = Aprobado
     messages.success(request, 'Pago aprobado correctamente')
     return redirect('aprobacion_pagos')
 
 @require_POST
 def rechazar_pago(request, pago_id):
     with connection.cursor() as cursor:
-        cursor.execute("UPDATE PAGO SET estado_pago_id = 4 WHERE pago_id = %s", [pago_id])  # 4 = Rechazado
+        cursor.execute("UPDATE PAGO SET estado_pago_id = 3 WHERE pago_id = %s", [pago_id])  # 4 = Rechazado
     messages.success(request, 'Pago rechazado correctamente')
     return redirect('aprobacion_pagos')
 
@@ -184,11 +189,11 @@ def login(request):
                 if rol == 1 or rol == 2:
                     return redirect('home')
                 elif rol == 3:
-                    return redirect('aprobacion_pagos')
+                    return redirect('admin_usuarios')
                 elif rol == 4:
                     return redirect('gestion_pedidos')
                 elif rol == 5:
-                    return redirect('admin_usuarios')
+                    return redirect('aprobacion_pagos')
                 else:
                     messages.error(request, 'Rol no reconocido.')
             else:
@@ -200,3 +205,128 @@ def login(request):
 def logout(request):
     django_logout(request)  # Limpia la sesión
     return redirect('home')
+
+def detalle_producto(request, producto_id):
+    try:
+        resp = requests.get(f'http://localhost:3002/productos/{producto_id}')
+        resp.raise_for_status()
+        producto = resp.json()
+    except Exception:
+        producto = None
+    return render(request, 'core/detalle_producto.html', {'producto': producto})
+
+def confirmar_pedido(request):
+    return render(request, 'core/confirmar_pedido.html')
+
+def dictfetchall(cursor):
+    columns = [col[0].lower() for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+def informe_pedidos(request):
+    # Solo permitir acceso a administradores (rol_id == 3)
+    if request.session.get('rol_id') != 3:
+        return redirect('home')
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT ped.pedido_id, ped.fecha_pedido, ped.total, e.nombre AS estado, u.nombre || ' ' || u.apellido_p AS cliente
+            FROM PEDIDO ped
+            JOIN ESTADO e ON ped.estado_id = e.estado_id
+            JOIN USUARIO u ON ped.cliente_id = u.id_usuario
+            ORDER BY ped.fecha_pedido DESC
+        """)
+        pedidos = dictfetchall(cursor)
+    return render(request, 'core/informe_pedidos.html', {'pedidos': pedidos})
+
+def descargar_informe_pedidos(request):
+    if request.session.get('rol_id') != 3:
+        return redirect('home')
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT ped.pedido_id, ped.fecha_pedido, ped.total, e.nombre AS estado, u.nombre || ' ' || u.apellido_p AS cliente
+            FROM PEDIDO ped
+            JOIN ESTADO e ON ped.estado_id = e.estado_id
+            JOIN USUARIO u ON ped.cliente_id = u.id_usuario
+            ORDER BY ped.fecha_pedido DESC
+        """)
+        pedidos = dictfetchall(cursor)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Pedidos"
+    headers = ["ID Pedido", "Fecha", "Cliente", "Estado", "Total"]
+    ws.append(headers)
+    for p in pedidos:
+        ws.append([
+            p['pedido_id'],
+            str(p['fecha_pedido']),
+            p['cliente'],
+            p['estado'],
+            float(p['total'])
+        ])
+    for i, col in enumerate(headers, 1):
+        ws.column_dimensions[get_column_letter(i)].width = 18
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=pedidos.xlsx'
+    wb.save(response)
+    return response
+
+def informe_pagos(request):
+    # Solo permitir acceso a administradores (rol_id == 3)
+    if request.session.get('rol_id') != 3:
+        return redirect('home')
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT p.pago_id, p.pedido_id, p.monto, p.fecha_pago, ep.nombre AS estado_pago,
+                   mp.nombre AS metodo_pago, u.nombre || ' ' || u.apellido_p AS cliente
+            FROM PAGO p
+            JOIN ESTADO_PAGO ep ON p.estado_pago_id = ep.estado_pago_id
+            JOIN METODO_PAGO mp ON p.metodo_pago_id = mp.metodo_pago
+            JOIN PEDIDO ped ON p.pedido_id = ped.pedido_id
+            JOIN USUARIO u ON ped.cliente_id = u.id_usuario
+            ORDER BY p.fecha_pago DESC
+        """)
+        pagos = dictfetchall(cursor)
+    return render(request, 'core/informe_pagos.html', {'pagos': pagos})
+
+def descargar_informe_pagos(request):
+    if request.session.get('rol_id') != 3:
+        return redirect('home')
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT p.pago_id, p.pedido_id, p.monto, p.fecha_pago, ep.nombre AS estado_pago,
+                   mp.nombre AS metodo_pago, u.nombre || ' ' || u.apellido_p AS cliente
+            FROM PAGO p
+            JOIN ESTADO_PAGO ep ON p.estado_pago_id = ep.estado_pago_id
+            JOIN METODO_PAGO mp ON p.metodo_pago_id = mp.metodo_pago
+            JOIN PEDIDO ped ON p.pedido_id = ped.pedido_id
+            JOIN USUARIO u ON ped.cliente_id = u.id_usuario
+            ORDER BY p.fecha_pago DESC
+        """)
+        pagos = dictfetchall(cursor)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Pagos"
+    headers = ["ID Pago", "ID Pedido", "Cliente", "Método de Pago", "Estado Pago", "Monto", "Fecha"]
+    ws.append(headers)
+    for p in pagos:
+        ws.append([
+            p['pago_id'],
+            p['pedido_id'],
+            p['cliente'],
+            p['metodo_pago'],
+            p['estado_pago'],
+            float(p['monto']),
+            str(p['fecha_pago'])
+        ])
+    for i, col in enumerate(headers, 1):
+        ws.column_dimensions[get_column_letter(i)].width = 18
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=pagos.xlsx'
+    wb.save(response)
+    return response

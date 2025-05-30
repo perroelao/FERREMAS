@@ -17,4 +17,10 @@ urlpatterns = [
     path("adminview/usuarios/agregar/", views.agregar_usuario, name="agregar_usuario"),
     path("adminview/usuarios/editar/<int:id_actualizar>/", views.editar_usuario, name="editar_usuario"),
     path("adminview/usuarios/eliminar/<int:id_eliminar>/", views.eliminar_usuario, name="eliminar_usuario"),
+    path('producto/<int:producto_id>/', views.detalle_producto, name='detalle_producto'),
+    path('confirmar_pedido/', views.confirmar_pedido, name='confirmar_pedido'),
+    path('informe_pedidos/', views.informe_pedidos, name='informe_pedidos'),
+    path('descargar_informe_pedidos/', views.descargar_informe_pedidos, name='descargar_informe_pedidos'),
+    path('informe_pagos/', views.informe_pagos, name='informe_pagos'),
+    path('descargar_informe_pagos/', views.descargar_informe_pagos, name='descargar_informe_pagos'),
 ]

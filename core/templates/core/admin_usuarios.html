@@ -25,6 +25,22 @@
     <div class="container mx-auto py-8">
         <h1 class="text-3xl font-bold mb-6 text-orange-600">Gestión de Usuarios</h1>
 
+        <!-- Botón para generar informes -->
+        <div class="mb-8 flex flex-col sm:flex-row gap-4 justify-end">
+            <a href="{% url 'informe_pedidos' %}" class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-2 rounded shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Informe de Pedidos
+            </a>
+            <a href="{% url 'informe_pagos' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Informe de Pagos
+            </a>
+        </div>
+
         <!-- Formulario agregar usuario -->
         <form method="post" action="{% url 'agregar_usuario' %}" class="bg-white p-6 rounded shadow mb-8 border border-orange-200">
             {% csrf_token %}

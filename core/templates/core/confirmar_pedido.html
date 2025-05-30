@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Pedido - FERREMAS</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <main class="container mx-auto px-4 py-12">
+        <h1 class="text-3xl font-bold mb-8 text-center">Confirmar Pedido</h1>
+        <div id="pedido-resumen" class="mb-8"></div>
+        <form id="confirmar-form" class="bg-white rounded-lg shadow-md p-6 max-w-lg mx-auto flex flex-col gap-4">
+            <label>
+                Tipo de pago:
+                <select id="metodo_pago_id" class="border rounded px-2 py-1 w-full">
+                    <option value="1">Efectivo</option>
+                    <option value="2">Débito</option>
+                    <option value="3">Crédito</option>
+                    <option value="4">Transferencia</option>
+                </select>
+            </label>
+            <label>
+                Sucursal para retiro:
+                <select id="sucursal_retiro" class="border rounded px-2 py-1 w-full">
+                    <option value="1">Sucursal Central</option>
+                    <option value="2">Sucursal Norte</option>
+                    <option value="3">Sucursal Sur</option>
+                </select>
+            </label>
+            <button type="submit" class="bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">
+                Confirmar Pedido
+            </button>
+        </form>
+    </main>
+    <script>
+    function formatPrice(value) {
+        return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+    }
+
+    // Mostrar resumen del pedido
+    function mostrarResumen() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let total = 0, totalArticulos = 0;
+        let html = `<table class="min-w-full mb-4"><thead>
+            <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
+        </thead><tbody>`;
+        cart.forEach(item => {
+            const subtotal = item.precio_unit * item.cantidad;
+            total += subtotal;
+            totalArticulos += item.cantidad;
+            html += `<tr>
+                <td>${item.nombre}</td>
+                <td class="text-center">${item.cantidad}</td>
+                <td class="text-center">${formatPrice(item.precio_unit)}</td>
+                <td class="text-center">${formatPrice(subtotal)}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        let descuentoHTML = '';
+        let totalConDescuento = total;
+        if (totalArticulos >= 4) {
+            const descuentoValor = Math.round(total * 0.10);
+            totalConDescuento = total - descuentoValor;
+            descuentoHTML = `<p class="text-green-700 font-semibold mb-1">Descuento aplicado: -${formatPrice(descuentoValor)}</p>`;
+        }
+        html += `<p class="text-xl font-semibold mb-2">Total de la compra: <span class="text-green-600">${formatPrice(totalConDescuento)}</span></p>`;
+        html += descuentoHTML;
+        document.getElementById('pedido-resumen').innerHTML = html;
+        return {totalConDescuento, totalArticulos};
+    }
+
+    // Enviar pedido al backend al confirmar
+    document.getElementById('confirmar-form').onsubmit = function(e) {
+        e.preventDefault();
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const cliente_id = "{{ request.session.usuario_id }}";
+        const vendedor_id = 2;
+        const metodo_pago_id = parseInt(document.getElementById('metodo_pago_id').value);
+        const sucursal_retiro = parseInt(document.getElementById('sucursal_retiro').value);
+
+        if (!cliente_id) {
+            alert('Debes iniciar sesión para comprar.');
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+        if (cart.length === 0) {
+            alert('Tu carrito está vacío.');
+            return;
+        }
+
+        const resumen = mostrarResumen();
+        const productos = cart.map(item => ({
+            producto_id: parseInt(item.producto_id),
+            cantidad: item.cantidad,
+            precio_unit: item.precio_unit
+        }));
+
+        fetch('http://localhost:3002/crear_pedido', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cliente_id: parseInt(cliente_id),
+                sucursal_retiro: sucursal_retiro,
+                vendedor_id: vendedor_id,
+                productos: productos,
+                metodo_pago_id: metodo_pago_id,
+                total: resumen.totalConDescuento
+            })
+        })
+        .then(res => res.json().then(data => ({ok: res.ok, data})))
+        .then(({ok, data}) => {
+            if (!ok) throw new Error(data.error || 'No se pudo crear el pedido');
+            alert('¡Pedido realizado con éxito! ID: ' + data.pedido_id);
+            localStorage.removeItem('cart');
+            window.location.href = "{% url 'home' %}";
+        })
+        .catch(err => {
+            alert('Error al crear el pedido: ' + err.message);
+        });
+    };
+
+    // Mostrar resumen al cargar
+    mostrarResumen();
+    </script>
+</body>
+</html>

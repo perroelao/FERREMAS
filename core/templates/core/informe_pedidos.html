@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Pedidos - FERREMAS</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <main class="container mx-auto px-4 py-12">
+        <div class="flex items-center justify-between mb-8">
+            <a href="{% url 'admin_usuarios' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Volver
+            </a>
+            <h1 class="text-3xl font-bold text-orange-600 flex items-center gap-2">
+                Informe de Pedidos
+            </h1>
+            <a href="{% url 'descargar_informe_pedidos' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                Descargar Excel
+            </a>
+        </div>
+        {% if pedidos %}
+            <div class="overflow-x-auto rounded shadow bg-white border border-orange-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-orange-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left">ID Pedido</th>
+                            <th class="px-4 py-2 text-left">Fecha</th>
+                            <th class="px-4 py-2 text-left">Cliente</th>
+                            <th class="px-4 py-2 text-left">Estado</th>
+                            <th class="px-4 py-2 text-left">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr class="hover:bg-orange-50 transition">
+                            <td class="px-4 py-2 font-semibold">{{ pedido.pedido_id }}</td>
+                            <td class="px-4 py-2">{{ pedido.fecha_pedido }}</td>
+                            <td class="px-4 py-2">{{ pedido.cliente }}</td>
+                            <td class="px-4 py-2">
+                                <span class="inline-block px-2 py-1 rounded 
+                                    {% if pedido.estado == 'Completado' %}bg-green-100 text-green-700
+                                    {% elif pedido.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
+                                    {% elif pedido.estado == 'Cancelado' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %} text-xs font-semibold">
+                                    {{ pedido.estado }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-green-700 font-semibold">${{ pedido.total|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-gray-500 mt-12">No hay pedidos registrados.</p>
+        {% endif %}
+    </main>
+</body>
+</html>
