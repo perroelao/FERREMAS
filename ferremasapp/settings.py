@@ -58,7 +58,7 @@ WSGI_APPLICATION = 'ferremasapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'ORCL',
+        'NAME': 'orcl.duoc.com.cl',
         'USER': 'FERREMAS',
         'PASSWORD': 'FERREMAS',
         'HOST': 'localhost',           # O la IP/hostname de tu servidor Oracle

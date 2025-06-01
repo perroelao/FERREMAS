@@ -23,4 +23,5 @@ urlpatterns = [
     path('descargar_informe_pedidos/', views.descargar_informe_pedidos, name='descargar_informe_pedidos'),
     path('informe_pagos/', views.informe_pagos, name='informe_pagos'),
     path('descargar_informe_pagos/', views.descargar_informe_pagos, name='descargar_informe_pagos'),
+    path('pedidos-para-entregar/', views.pedidos_para_entregar, name='pedidos_para_entregar'),
 ]

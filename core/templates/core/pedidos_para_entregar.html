@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedidos para Entregar - FERREMAS</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-extrabold text-orange-600 flex items-center gap-2">
+                <img src="{% static 'assets/img/logo.png' %}" alt="Logo" class="h-12 w-auto">
+                FERREMAS
+            </a>
+            <a href="{% url 'home' %}" class="text-orange-600 hover:underline">Volver al inicio</a>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Pedidos Listos para Entregar</h1>
+        {% if pedidos %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg shadow">
+                <thead>
+                    <tr class="bg-orange-600 text-white">
+                        <th class="py-3 px-4 text-left">ID Pedido</th>
+                        <th class="py-3 px-4 text-left">Cliente</th>
+                        <th class="py-3 px-4 text-left">Fecha</th>
+                        <th class="py-3 px-4 text-left">Total</th>
+                        <th class="py-3 px-4 text-left">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos %}
+                    <tr class="border-b hover:bg-orange-50">
+                        <td class="py-2 px-4">{{ pedido.pedido_id }}</td>
+                        <td class="py-2 px-4">{{ pedido.cliente }}</td>
+                        <td class="py-2 px-4">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                        <td class="py-2 px-4">${{ pedido.total }}</td>
+                        <td class="py-2 px-4">{{ pedido.estado }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-gray-600">No hay pedidos listos para entregar.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

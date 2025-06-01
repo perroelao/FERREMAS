@@ -330,3 +330,31 @@ def descargar_informe_pagos(request):
     response['Content-Disposition'] = 'attachment; filename=pagos.xlsx'
     wb.save(response)
     return response
+
+def pedidos_para_entregar(request):
+    # Solo mostrar si el usuario es vendedor
+    if request.session.get('rol_id') != 2:
+        return render(request, 'core/no_autorizado.html')
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT p.pedido_id, u.nombre || ' ' || u.apellido_p AS cliente, p.fecha_pedido, p.total, e.nombre AS estado
+            FROM PEDIDO p
+            JOIN USUARIO u ON p.cliente_id = u.id_usuario
+            JOIN ESTADO e ON p.estado_id = e.estado_id
+            JOIN PAGO pa ON pa.pedido_id = p.pedido_id
+            WHERE p.estado_id = 3 -- Completado
+              AND pa.estado_pago_id = 1 -- Pagado
+            ORDER BY p.fecha_pedido DESC
+        """)
+        pedidos = [
+            {
+                'pedido_id': row[0],
+                'cliente': row[1],
+                'fecha_pedido': row[2],
+                'total': row[3],
+                'estado': row[4],
+            }
+            for row in cursor.fetchall()
+        ]
+    return render(request, 'core/pedidos_para_entregar.html', {'pedidos': pedidos})

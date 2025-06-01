@@ -8,7 +8,8 @@
     <meta name="keywords" content="ferretería online, herramientas, materiales de construcción, pinturas, jardinería, plomería, electricidad, comprar online">
     <title>Inicio - FERREMAS</title>
     <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
-    <link rel="icon" href="images/favicon_ferreteria.ico" type="image/x-icon"> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="images/favicon_ferreteria.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -23,7 +24,6 @@
                         <img src="{% static 'assets/img/logo.png' %}" alt="Logo Mi Ferretería Online" class="h-20 w-auto">
                     </a>
                 </div>
-
                 <div class="hidden md:flex flex-grow justify-center px-4">
                     <div class="relative w-full max-w-lg">
                         <input type="search" id="search-input-desktop" placeholder="Buscar herramientas, materiales, etc." class="w-full py-2.5 px-4 pr-10 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
@@ -32,18 +32,23 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="flex items-center space-x-3 sm:space-x-4">
                     <a href="{% url 'carrito' %}" aria-label="Ver carrito de compras" class="relative text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors cart-icon">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         <span class="cart-count absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">0</span>
                     </a>
-                        {% if request.session.usuario_id %}
-                            <a href="{% url 'logout' %}" class="text-gray-700 hover:text-orange-600 font-semibold">Cerrar sesión</a>
-                        {% else %}
-                            <a href="{% url 'login' %}" aria-label="Iniciar sesión o ver perfil de usuario" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
-                            Iniciar sesión</a>
-                        {% endif %}
+                    {% if request.session.usuario_id %}
+                        <form action="{% url 'logout' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" aria-label="Iniciar sesión o ver perfil de usuario" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
+                            Iniciar sesión
+                        </a>
+                    {% endif %}
                     <button id="mobile-menu-button" aria-label="Abrir menú de navegación" aria-expanded="false" class="md:hidden p-2 text-gray-600 hover:text-orange-600">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                     </button>
@@ -53,11 +58,8 @@
         <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <input type="search" id="search-input-mobile" placeholder="Buscar herramientas..." class="w-full mb-2 py-2 px-3 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500">
-                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Inicio</a>
-                <a href="productos.html?categoria=herramientas" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Herramientas</a>
-                <a href="productos.html?categoria=construccion" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Construcción</a>
-                <a href="productos.html?categoria=pinturas" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Pinturas</a>
-                <a href="productos.html?categoria=jardineria" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Jardinería</a>
+                <a href="{% url 'home' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Inicio</a>
+                <a href="{% url 'listaproductos' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Productos</a>
                 <a href="ofertas.html" class="block px-3 py-2 rounded-md text-base font-medium text-red-500 hover:text-red-700 hover:bg-gray-50">Ofertas</a>
                 <a href="contacto.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50">Contacto</a>
             </div>
@@ -66,14 +68,24 @@
 
     <main class="site-main">
 
+        <!-- BOTÓN SOLO PARA VENDEDORES -->
+        {% if request.session.rol_id == 2 %}
+        <div class="flex justify-center mt-8">
+            <a href="{% url 'pedidos_para_entregar' %}" class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h6m-6 0V7a4 4 0 00-4-4H5a4 4 0 00-4 4v10a4 4 0 004 4h6a4 4 0 004-4z" />
+                </svg>
+                Ver pedidos listos para entregar
+            </a>
+        </div>
+        {% endif %}
+        <br>
+
         <section class="hero-section relative text-white py-20 md:py-32 overflow-hidden">
-            <!-- Imagen de fondo -->
             <div class="absolute inset-0 z-0">
                 <img src="{% static 'assets/img/fondo.jpg' %}" alt="Fondo" class="w-full h-full object-cover object-center">
-                <!-- Overlay naranja con transparencia -->
                 <div class="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-600 opacity-60"></div>
             </div>
-            <!-- Contenido hero -->
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                 <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">¡Todo para tus Proyectos!</h1>
                 <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto">Encuentra las mejores herramientas, materiales y asesoría para construir, reparar y mejorar.</p>
@@ -219,29 +231,29 @@
     <div id="action-feedback-message" class="action-feedback"></div>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-    fetch('http://localhost:3002/productos')
-        .then(response => response.json())
-        .then(data => {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = '';
-            data.forEach(producto => {
-                grid.innerHTML += `
-                <div class="product-card">
-                    <div>
-                        <a href="producto-detalle.html?id=${producto.producto_id}">
-                            <img src="${producto.imagen || 'https://placehold.co/300x300/F59E0B/FFFFFF?text=' + encodeURIComponent(producto.nombre)}" alt="${producto.nombre}" class="rounded-lg">
-                            <h3 class="mt-4 text-lg font-semibold text-gray-800 hover:text-orange-600">${producto.nombre}</h3>
-                        </a>
-                        <p class="price mt-2 text-xl font-bold text-green-600">$${producto.precio}</p>
+        fetch('http://localhost:3002/productos')
+            .then(response => response.json())
+            .then(data => {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = '';
+                data.forEach(producto => {
+                    grid.innerHTML += `
+                    <div class="product-card">
+                        <div>
+                            <a href="producto-detalle.html?id=${producto.producto_id}">
+                                <img src="${producto.imagen || 'https://placehold.co/300x300/F59E0B/FFFFFF?text=' + encodeURIComponent(producto.nombre)}" alt="${producto.nombre}" class="rounded-lg">
+                                <h3 class="mt-4 text-lg font-semibold text-gray-800 hover:text-orange-600">${producto.nombre}</h3>
+                            </a>
+                            <p class="price mt-2 text-xl font-bold text-green-600">$${producto.precio}</p>
+                        </div>
+                        <button class="btn btn-primary w-full mt-4 py-2.5 add-to-cart">Añadir al Carrito</button>
                     </div>
-                    <button class="btn btn-primary w-full mt-4 py-2.5 add-to-cart">Añadir al Carrito</button>
-                </div>
-                `;
+                    `;
+                });
+            })
+            .catch(error => {
+                document.getElementById('product-grid').innerHTML = '<p class="text-red-500">No se pudieron cargar los productos.</p>';
             });
-        })
-        .catch(error => {
-            document.getElementById('product-grid').innerHTML = '<p class="text-red-500">No se pudieron cargar los productos.</p>';
-        });
     });
     </script>
     <script src="js/main.js"></script>
