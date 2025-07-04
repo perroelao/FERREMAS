@@ -28,7 +28,6 @@
                     <div class="relative w-full max-w-lg">
                         <input type="search" id="search-input-desktop" placeholder="Buscar herramientas, materiales, etc." class="w-full py-2.5 px-4 pr-10 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                         <button type="submit" aria-label="Buscar" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-orange-600">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
                         </button>
                     </div>
                 </div>
@@ -37,6 +36,12 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         <span class="cart-count absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">0</span>
                     </a>
+                    <button id="convert-to-usd" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
+                        Convertir a USD
+                    </button>
+                    <button id="toclp" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
+                        Convertir a CLP
+                    </button>
                     {% if request.session.usuario_id %}
                         <form action="{% url 'logout' %}" method="post" class="inline">
                             {% csrf_token %}
@@ -47,6 +52,11 @@
                     {% else %}
                         <a href="{% url 'login' %}" aria-label="Iniciar sesión o ver perfil de usuario" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
                             Iniciar sesión
+                        </a>
+                    {% endif %}
+                    {% if request.session.usuario_id %}
+                        <a href="{% url 'historial_pedidos' %}" class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
+                            Ver Historial de Pedidos
                         </a>
                     {% endif %}
                     <button id="mobile-menu-button" aria-label="Abrir menú de navegación" aria-expanded="false" class="md:hidden p-2 text-gray-600 hover:text-orange-600">
@@ -230,32 +240,122 @@
 
     <div id="action-feedback-message" class="action-feedback"></div>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('http://localhost:3002/productos')
-            .then(response => response.json())
-            .then(data => {
-                const grid = document.getElementById('product-grid');
-                grid.innerHTML = '';
-                data.forEach(producto => {
-                    grid.innerHTML += `
-                    <div class="product-card">
-                        <div>
-                            <a href="producto-detalle.html?id=${producto.producto_id}">
-                                <img src="${producto.imagen || 'https://placehold.co/300x300/F59E0B/FFFFFF?text=' + encodeURIComponent(producto.nombre)}" alt="${producto.nombre}" class="rounded-lg">
-                                <h3 class="mt-4 text-lg font-semibold text-gray-800 hover:text-orange-600">${producto.nombre}</h3>
-                            </a>
-                            <p class="price mt-2 text-xl font-bold text-green-600">$${producto.precio}</p>
-                        </div>
-                        <button class="btn btn-primary w-full mt-4 py-2.5 add-to-cart">Añadir al Carrito</button>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('http://localhost:3002/productos')
+        .then(response => response.json())
+        .then(data => {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            data.forEach(producto => {
+                const stock = producto.stock ?? 0;
+                const stockClass = stock < 15 ? 'text-red-600 font-bold' : 'text-gray-600 font-semibold';
+                grid.innerHTML += `
+                <div class="product-card">
+                    <div>
+                        <a href="/producto/${producto.producto_id}" class="block text-center">
+                            <img src="${producto.imagen || 'https://placehold.co/300x300/F59E0B/FFFFFF?text=' + encodeURIComponent(producto.nombre)}" alt="${producto.nombre}" class="rounded-lg">
+                            <h3 class="mt-4 text-lg font-semibold text-gray-800 hover:text-orange-600">${producto.nombre}</h3>
+                        </a>
+                        <p class="price mt-2 text-xl font-bold text-green-600">$${producto.precio}</p>
+                        <p class="mt-1 text-sm ${stockClass}">Stock: ${stock}</p>
                     </div>
-                    `;
-                });
-            })
-            .catch(error => {
-                document.getElementById('product-grid').innerHTML = '<p class="text-red-500">No se pudieron cargar los productos.</p>';
+                    <button 
+                        class="btn btn-primary w-full mt-4 py-2.5 add-to-cart" 
+                        data-id="${producto.producto_id}" 
+                        data-nombre="${producto.nombre}" 
+                        data-precio="${producto.precio}" 
+                        data-imagen="${producto.imagen}">
+                        Añadir al Carrito
+                    </button>
+                </div>
+                `;
             });
+        })
+        .catch(error => {
+            document.getElementById('product-grid').innerHTML = '<p class="text-red-500">No se pudieron cargar los productos.</p>';
+        });
+});
+
+// Manejo de añadir al carrito igual que en listaproductos.html
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('add-to-cart')) {
+        const id = e.target.dataset.id;
+        if (!id || id === 'null') {
+            console.error('Error: ID de producto no válido');
+            alert('Error: No se pudo agregar el producto al carrito');
+            return;
+        }
+        const producto_id = parseInt(id);
+        const nombre = e.target.dataset.nombre;
+        const precio = parseFloat(e.target.dataset.precio);
+        const imagen = e.target.dataset.imagen;
+
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let prod = cart.find(p => p.producto_id === producto_id);
+
+        if (prod) {
+            prod.cantidad += 1;
+        } else {
+            if (!nombre || !precio || isNaN(precio)) {
+                console.error('Error: Datos de producto incompletos');
+                alert('Error: No se pudo agregar el producto al carrito');
+                return;
+            }
+            cart.push({
+                producto_id: producto_id,
+                nombre: nombre,
+                precio_unit: precio,
+                cantidad: 1,
+                imagen: imagen
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        alert('Producto agregado al carrito');
+    }
+});
+</script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetButton = document.getElementById('toclp');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                window.location.reload();
+            });
+        }
     });
     </script>
-    <script src="js/main.js"></script>
+    <script src="{% static 'assets/js/miindicador.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Desktop
+    const searchInput = document.getElementById('search-input-desktop');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = searchInput.value.trim();
+                if (q) {
+                    window.location.href = "{% url 'busqueda_productos' %}?q=" + encodeURIComponent(q);
+                }
+            }
+        });
+    }
+    // Mobile
+    const searchInputMobile = document.getElementById('search-input-mobile');
+    if (searchInputMobile) {
+        searchInputMobile.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = searchInputMobile.value.trim();
+                if (q) {
+                    window.location.href = "{% url 'busqueda_productos' %}?q=" + encodeURIComponent(q);
+                }
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

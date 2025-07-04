@@ -15,21 +15,43 @@
             <label>
                 Tipo de pago:
                 <select id="metodo_pago_id" class="border rounded px-2 py-1 w-full">
-                    <option value="1">Efectivo</option>
-                    <option value="2">Débito</option>
-                    <option value="3">Crédito</option>
+                    <option value="1">Paypal</option>
                     <option value="4">Transferencia</option>
                 </select>
             </label>
-            <label>
-                Sucursal para retiro:
-                <select id="sucursal_retiro" class="border rounded px-2 py-1 w-full">
-                    <option value="1">Sucursal Central</option>
-                    <option value="2">Sucursal Norte</option>
-                    <option value="3">Sucursal Sur</option>
-                </select>
-            </label>
-            <button type="submit" class="bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">
+            <div id="transferencia-info" style="display:none; margin-top: 16px; border: 1px solid #ccc; padding: 16px; border-radius: 8px;">
+                <h3>Datos para Transferencia Bancaria</h3>
+                <p><strong>Banco:</strong> Banco Ejemplo</p>
+                <p><strong>Cuenta:</strong> 123456789</p>
+                <p><strong>RUT:</strong> 12.345.678-9</p>
+                <p><strong>Nombre:</strong> Ferremas Ltda.</p>
+                <label for="comprobante" class="block mt-4 mb-2 font-semibold">Sube tu comprobante de transferencia:</label>
+                <input type="file" id="comprobante" name="comprobante" accept="image/*,application/pdf" class="block w-full border rounded px-2 py-1">
+            </div>
+            <!-- Tipo de despacho -->
+            <div>
+                <span class="block text-sm font-semibold text-gray-700 mb-1">Tipo de despacho:</span>
+                <label class="inline-flex items-center mr-4">
+                    <input type="radio" name="tipo_despacho" value="domicilio" class="form-radio text-orange-600" checked>
+                    <span class="ml-2">Despacho a domicilio</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="tipo_despacho" value="retiro" class="form-radio text-orange-600">
+                    <span class="ml-2">Retiro en tienda</span>
+                </label>
+            </div>
+            <!-- Sucursal para retiro (oculta por defecto) -->
+            <div id="sucursal-retiro-div" style="display:none;">
+                <label>
+                    Sucursal para retiro:
+                    <select id="sucursal_retiro" class="border rounded px-2 py-1 w-full">
+                        <option value="1">Sucursal Central</option>
+                        <option value="2">Sucursal Norte</option>
+                        <option value="3">Sucursal Sur</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit" id="btn-confirmar" class="bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">
                 Confirmar Pedido
             </button>
         </form>
@@ -43,21 +65,33 @@
     function mostrarResumen() {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         let total = 0, totalArticulos = 0;
-        let html = `<table class="min-w-full mb-4"><thead>
-            <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
-        </thead><tbody>`;
+        let html = `<table class="min-w-full mb-4">
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
         cart.forEach(item => {
             const subtotal = item.precio_unit * item.cantidad;
             total += subtotal;
             totalArticulos += item.cantidad;
             html += `<tr>
-                <td>${item.nombre}</td>
+                <td class="text-center">${item.producto_id || 'N/A'}</td>
+                <td class="text-left">${item.nombre}</td>
                 <td class="text-center">${item.cantidad}</td>
                 <td class="text-center">${formatPrice(item.precio_unit)}</td>
                 <td class="text-center">${formatPrice(subtotal)}</td>
             </tr>`;
         });
+
         html += `</tbody></table>`;
+        
         let descuentoHTML = '';
         let totalConDescuento = total;
         if (totalArticulos >= 4) {
@@ -65,11 +99,41 @@
             totalConDescuento = total - descuentoValor;
             descuentoHTML = `<p class="text-green-700 font-semibold mb-1">Descuento aplicado: -${formatPrice(descuentoValor)}</p>`;
         }
+
         html += `<p class="text-xl font-semibold mb-2">Total de la compra: <span class="text-green-600">${formatPrice(totalConDescuento)}</span></p>`;
         html += descuentoHTML;
+        
         document.getElementById('pedido-resumen').innerHTML = html;
         return {totalConDescuento, totalArticulos};
     }
+
+    // Mostrar/ocultar info transferencia según método de pago
+    document.getElementById('metodo_pago_id').addEventListener('change', function() {
+        const transferenciaInfo = document.getElementById('transferencia-info');
+        if (parseInt(this.value) === 4) {
+            transferenciaInfo.style.display = 'block';
+        } else {
+            transferenciaInfo.style.display = 'none';
+        }
+    });
+
+    // Mostrar/ocultar sucursal según tipo de despacho
+    document.querySelectorAll('input[name="tipo_despacho"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            if (this.value === 'retiro') {
+                document.getElementById('sucursal-retiro-div').style.display = 'block';
+            } else {
+                document.getElementById('sucursal-retiro-div').style.display = 'none';
+            }
+        });
+    });
+    // Mostrar/ocultar al cargar según el valor por defecto
+    window.addEventListener('DOMContentLoaded', function() {
+        const checked = document.querySelector('input[name="tipo_despacho"]:checked');
+        if (checked && checked.value === 'retiro') {
+            document.getElementById('sucursal-retiro-div').style.display = 'block';
+        }
+    });
 
     // Enviar pedido al backend al confirmar
     document.getElementById('confirmar-form').onsubmit = function(e) {
@@ -78,7 +142,13 @@
         const cliente_id = "{{ request.session.usuario_id }}";
         const vendedor_id = 2;
         const metodo_pago_id = parseInt(document.getElementById('metodo_pago_id').value);
-        const sucursal_retiro = parseInt(document.getElementById('sucursal_retiro').value);
+
+        // Tipo de despacho y sucursal
+        const tipo_despacho = document.querySelector('input[name="tipo_despacho"]:checked').value;
+        let sucursal_retiro = null;
+        if (tipo_despacho === 'retiro') {
+            sucursal_retiro = parseInt(document.getElementById('sucursal_retiro').value);
+        }
 
         if (!cliente_id) {
             alert('Debes iniciar sesión para comprar.');
@@ -97,32 +167,77 @@
             precio_unit: item.precio_unit
         }));
 
-        fetch('http://localhost:3002/crear_pedido', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        const btn = document.getElementById('btn-confirmar');
+        btn.disabled = true;
+        btn.textContent = (metodo_pago_id === 1) ? "Redirigiendo a PayPal..." : "Procesando...";
+
+        // Si es transferencia y hay comprobante, lo enviamos como base64
+        if (metodo_pago_id === 4 && document.getElementById('comprobante').files.length > 0) {
+            const file = document.getElementById('comprobante').files[0];
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                enviarPedido({
+                    cliente_id: parseInt(cliente_id),
+                    tipo_despacho: tipo_despacho,
+                    sucursal_retiro: sucursal_retiro,
+                    vendedor_id: vendedor_id,
+                    productos: productos,
+                    metodo_pago_id: metodo_pago_id,
+                    total: resumen.totalConDescuento,
+                    comprobante: evt.target.result // base64
+                }, btn, metodo_pago_id);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            enviarPedido({
                 cliente_id: parseInt(cliente_id),
+                tipo_despacho: tipo_despacho,
                 sucursal_retiro: sucursal_retiro,
                 vendedor_id: vendedor_id,
                 productos: productos,
                 metodo_pago_id: metodo_pago_id,
                 total: resumen.totalConDescuento
-            })
-        })
-        .then(res => res.json().then(data => ({ok: res.ok, data})))
-        .then(({ok, data}) => {
-            if (!ok) throw new Error(data.error || 'No se pudo crear el pedido');
-            alert('¡Pedido realizado con éxito! ID: ' + data.pedido_id);
-            localStorage.removeItem('cart');
-            window.location.href = "{% url 'home' %}";
-        })
-        .catch(err => {
-            alert('Error al crear el pedido: ' + err.message);
-        });
+            }, btn, metodo_pago_id);
+        }
     };
+
+    function enviarPedido(payload, btn, metodo_pago_id) {
+        fetch('/crear_pedido_paypal/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (metodo_pago_id === 1) {
+                if (data.approvalUrl) {
+                    localStorage.removeItem('cart');
+                    window.location.href = data.approvalUrl;
+                } else {
+                    alert('Error al crear la orden de PayPal: ' + (data.error || ''));
+                    btn.disabled = false;
+                    btn.textContent = "Confirmar Pedido";
+                }
+            } else if (metodo_pago_id === 4) {
+                if (data.pedido_id) {
+                    alert('¡Pedido realizado con éxito! ID: ' + data.pedido_id);
+                    localStorage.removeItem('cart');
+                    window.location.href = "{% url 'home' %}";
+                } else {
+                    alert('Error al crear el pedido: ' + (data.error || ''));
+                    btn.disabled = false;
+                    btn.textContent = "Confirmar Pedido";
+                }
+            }
+        })
+        .catch(() => {
+            alert('Error de conexión con el servidor');
+            btn.disabled = false;
+            btn.textContent = "Confirmar Pedido";
+        });
+    }
 
     // Mostrar resumen al cargar
     mostrarResumen();
     </script>
-</body>
-</html>
+    <script src="{% static 'assets/js/transf.js' %}"></script>

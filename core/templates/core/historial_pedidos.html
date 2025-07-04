@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Pedidos</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <main class="container mx-auto px-4 py-12">
+        <h1 class="text-3xl font-bold mb-8 text-center text-orange-600">Historial de Pedidos</h1>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg shadow-md">
+                <thead>
+                    <tr>
+                        <th class="py-3 px-4 border-b text-left">ID Pedido</th>
+                        <th class="py-3 px-4 border-b text-left">Fecha</th>
+                        <th class="py-3 px-4 border-b text-left">Total</th>
+                        <th class="py-3 px-4 border-b text-left">Estado Pedido</th>
+                        <th class="py-3 px-4 border-b text-left">Estado Pago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos %}
+                    <tr class="hover:bg-orange-50 transition">
+                        <td class="py-2 px-4 border-b">{{ pedido.pedido_id }}</td>
+                        <td class="py-2 px-4 border-b">{{ pedido.fecha_pedido }}</td>
+                        <td class="py-2 px-4 border-b">${{ pedido.total|floatformat:0 }}</td>
+                        <td class="py-2 px-4 border-b">
+                            {% if pedido.estado.nombre == "Pendiente" %}
+                                <span class="text-yellow-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
+                            {% elif pedido.estado.nombre == "Completado" or pedido.estado.nombre == "Entregado" %}
+                                <span class="text-green-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
+                            {% elif pedido.estado.nombre == "Cancelado" or pedido.estado.nombre == "Rechazado" %}
+                                <span class="text-red-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
+                            {% else %}
+                                {{ pedido.estado.nombre|capfirst }}
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-4 border-b">
+                            {% with pago=pedido.pago_set.first %}
+                                {% if pago %}
+                                    {% if pago.estado_pago.nombre == "Pendiente" %}
+                                        <span class="text-yellow-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
+                                    {% elif pago.estado_pago.nombre == "Pagado" %}
+                                        <span class="text-green-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
+                                    {% elif pago.estado_pago.nombre == "Rechazado" %}
+                                        <span class="text-red-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
+                                    {% else %}
+                                        {{ pago.estado_pago.nombre|capfirst }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-500">Sin pago</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-4 text-center text-gray-500">No tienes pedidos aún.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-8 text-center">
+            <a href="{% url 'home' %}" class="inline-block bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition">Volver al inicio</a>
+        </div>
+    </main>
+</body>

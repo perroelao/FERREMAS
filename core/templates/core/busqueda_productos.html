@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados de Búsqueda</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-orange-600">Resultados de búsqueda para: <span class="text-gray-800">"{{ query }}"</span></h1>
+            <a href="{% url 'home' %}" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Volver al inicio
+            </a>
+        </div>
+        <div class="flex gap-8">
+            <!-- Filtro de categorías -->
+            <aside class="w-64 bg-white rounded-lg shadow p-5 border border-orange-200">
+                <h2 class="font-semibold text-lg mb-4 text-orange-600">Categorías</h2>
+                <ul>
+                    <li>
+                        <a href="?q={{ query }}" class="block py-2 px-2 rounded-lg mb-1 {% if not categoria_seleccionada %}bg-orange-100 text-orange-700 font-bold{% else %}hover:bg-orange-50{% endif %} transition">Todas</a>
+                    </li>
+                    {% for cat in categorias %}
+                    <li>
+                        <a href="?q={{ query }}&categoria={{ cat.categoria_id }}" class="block py-2 px-2 rounded-lg mb-1 {% if categoria_seleccionada == cat.categoria_id %}bg-orange-100 text-orange-700 font-bold{% else %}hover:bg-orange-50{% endif %} transition">
+                            {{ cat.nombre }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </aside>
+            <!-- Resultados -->
+            <section class="flex-1">
+                {% if productos %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        {% for producto in productos %}
+                        <div class="bg-white rounded-lg shadow border border-orange-200 p-4 flex flex-col items-center hover:shadow-lg transition">
+                            <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="h-40 object-contain mb-3 rounded">
+                            <h3 class="font-semibold text-lg mb-1 text-orange-700">{{ producto.nombre }}</h3>
+                            <p class="text-gray-600 mb-2 text-center line-clamp-2">{{ producto.descripcion|truncatechars:60 }}</p>
+                            <p class="text-green-600 font-bold text-xl mb-2">${{ producto.precio|floatformat:0 }}</p>
+                            <a href="{% url 'detalle_producto' producto.producto_id %}" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-semibold transition mt-auto">Ver detalle</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="flex flex-col items-center justify-center h-64">
+                        <img src="{% static 'assets/img/empty-box.svg' %}" alt="Sin resultados" class="h-24 mb-4 opacity-70">
+                        <p class="text-gray-500 text-lg">No se encontraron productos para tu búsqueda.</p>
+                        <a href="{% url 'listaproductos' %}" class="mt-6 bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded font-semibold transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Volver a productos
+                        </a>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>

@@ -29,16 +29,43 @@
                         <th class="py-3 px-4 text-left">Fecha</th>
                         <th class="py-3 px-4 text-left">Total</th>
                         <th class="py-3 px-4 text-left">Estado</th>
+                        <th class="py-3 px-4 text-left">Accion</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pedido in pedidos %}
-                    <tr class="border-b hover:bg-orange-50">
-                        <td class="py-2 px-4">{{ pedido.pedido_id }}</td>
-                        <td class="py-2 px-4">{{ pedido.cliente }}</td>
-                        <td class="py-2 px-4">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
-                        <td class="py-2 px-4">${{ pedido.total }}</td>
-                        <td class="py-2 px-4">{{ pedido.estado }}</td>
+                    <tr>
+                        <td>{{ pedido.pedido_id }}</td>
+                        <td>{{ pedido.cliente }}</td>
+                        <td>{{ pedido.fecha_pedido }}</td>
+                        <td>{{ pedido.total }}</td>
+                        <td>{{ pedido.estado }}</td>
+                        <td>
+                            <form method="post" action="{% url 'marcar_pedido_entregado' pedido.pedido_id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded shadow transition duration-150 ease-in-out flex items-center gap-2"
+                                    title="Marcar como entregado">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Entregar
+                                </button>
+                            </form>
+                                                    <!-- BOTÓN VER DETALLE -->
+                        <button type="button"
+                            onclick="toggleDetalleEntrega('{{ pedido.pedido_id }}', this)"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition ml-2">
+                            Ver Detalle
+                        </button>
+                        </td>
+                    </tr>
+                    <tr id="detalle-entrega-{{ pedido.pedido_id }}" class="hidden bg-orange-50">
+                        <td colspan="6" class="py-2 px-4">
+                            <div class="flex justify-center items-center py-4" id="detalle-content-entrega-{{ pedido.pedido_id }}">
+                                <span class="text-gray-400">Cargando detalles...</span>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -48,5 +75,29 @@
         <p class="text-center text-gray-600">No hay pedidos listos para entregar.</p>
         {% endif %}
     </main>
+    <script>
+    function toggleDetalleEntrega(pedidoId, btn) {
+        const fila = document.getElementById('detalle-entrega-' + pedidoId);
+        if (fila.classList.contains('hidden')) {
+            fila.classList.remove('hidden');
+            const content = document.getElementById('detalle-content-entrega-' + pedidoId);
+            if (!content.dataset.loaded) {
+                fetch(`/ajax/detalle_entrega/${pedidoId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                    content.innerHTML = `<span class="text-gray-700 font-semibold">ID Pedido: ${pedidoId} &nbsp; | &nbsp; ID Cliente: ${data.cliente_id}</span>`;                        content.dataset.loaded = "1";
+                    });
+            }
+            btn.textContent = "Ocultar Detalle";
+            btn.classList.remove("bg-blue-600");
+            btn.classList.add("bg-gray-600");
+        } else {
+            fila.classList.add('hidden');
+            btn.textContent = "Ver Detalle";
+            btn.classList.remove("bg-gray-600");
+            btn.classList.add("bg-blue-600");
+        }
+    }
+</script>
 </body>
 </html>

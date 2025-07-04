@@ -2,6 +2,7 @@ DROP SEQUENCE DETALLE_PEDIDO_SEQ;
 DROP SEQUENCE PEDIDO_SEQ;
 DROP SEQUENCE SEQ_USUARIO;
 DROP SEQUENCE PRODUCTO_SEQ;
+DROP SEQUENCE PAGO_SEQ;
 DROP TABLE PAGO CASCADE CONSTRAINTS;
 DROP TABLE INVENTARIO CASCADE CONSTRAINTS;
 DROP TABLE DETALLE_PEDIDO CASCADE CONSTRAINTS;
@@ -17,6 +18,7 @@ DROP TABLE MARCA CASCADE CONSTRAINTS;
 DROP TABLE COMUNA CASCADE CONSTRAINTS;
 DROP TABLE REGION CASCADE CONSTRAINTS;
 DROP TABLE ROL CASCADE CONSTRAINTS;
+DROP TABLE TIPO_DESPACHO CASCADE CONSTRAINTS;
 -- Creación
 CREATE SEQUENCE DETALLE_PEDIDO_SEQ
     START WITH 1
@@ -41,6 +43,11 @@ CREATE SEQUENCE PRODUCTO_SEQ
     INCREMENT BY 1
     NOCACHE
     NOCYCLE;
+
+CREATE SEQUENCE PAGO_SEQ 
+    START WITH 1 
+    INCREMENT BY 1 
+    NOCACHE;
 
 -- Tabla ROL
 CREATE TABLE ROL (
@@ -100,9 +107,16 @@ CREATE TABLE USUARIO (
     fono VARCHAR2(20),
     direccion VARCHAR2(200),
     password VARCHAR2(200) NOT NULL,
+    debe_cambiar_password NUMBER(1) NOT NULL,
     rol_id number(1) NOT NULL,
     CONSTRAINT USUARIO_ROL_FK FOREIGN KEY (rol_id)
 	REFERENCES ROL(rol_id) ON DELETE CASCADE
+);
+
+-- Tabla TIPO_DESPACHO
+CREATE TABLE TIPO_DESPACHO (
+    tipo_despacho_id NUMBER(10) PRIMARY KEY,
+    nombre VARCHAR2(100) NOT NULL
 );
 
 -- Tabla ESTADO
@@ -131,9 +145,10 @@ CREATE TABLE PRODUCTO (
     nombre VARCHAR2(100) NOT NULL,
     descripcion VARCHAR2(300),
     precio NUMBER(10) NOT NULL,
+    STOCK NUMBER(10) DEFAULT 0 NOT NULL,
     categoria_id NUMBER(10) NOT NULL,
     marca_id NUMBER(10) NOT NULL,
-    imagen BLOB,
+    imagen CLOB,
     CONSTRAINT PRODUCTO_CATEGORIA_FK FOREIGN KEY (categoria_id) 
         REFERENCES CATEGORIA(categoria_id) ON DELETE CASCADE,
     CONSTRAINT PRODUCTO_MARCA_FK FOREIGN KEY (marca_id) 
@@ -149,6 +164,7 @@ CREATE TABLE PEDIDO (
     sucursal_retiro NUMBER(10),
     total NUMBER(10) NOT NULL,
     vendedor_id NUMBER(10) NOT NULL,
+    tipo_despacho_id NUMBER(10) NOT NULL,
     CONSTRAINT PEDIDO_ESTADO_FK FOREIGN KEY (estado_id) 
         REFERENCES ESTADO(estado_id) ON DELETE CASCADE,
     CONSTRAINT PEDIDO_USUARIO_FK FOREIGN KEY (cliente_id) 
@@ -156,7 +172,9 @@ CREATE TABLE PEDIDO (
     CONSTRAINT PEDIDO_SUCURSAL_FK FOREIGN KEY (sucursal_retiro) 
         REFERENCES SUCURSAL(sucursal_id) ON DELETE SET NULL,
     CONSTRAINT PEDIDO_VENDEDOR_FK FOREIGN KEY (vendedor_id) 
-        REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+        REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    CONSTRAINT PEDIDO_TIPO_DESPACHO_FK FOREIGN KEY (tipo_despacho_id) 
+        REFERENCES TIPO_DESPACHO(tipo_despacho_id) ON DELETE CASCADE
 );
 
 -- Tabla DETALLE_PEDIDO
@@ -172,18 +190,6 @@ CREATE TABLE DETALLE_PEDIDO (
         REFERENCES PEDIDO(pedido_id) ON DELETE CASCADE
 );
 
--- Tabla INVENTARIO
-CREATE TABLE INVENTARIO (
-    Inventario_id NUMBER(10) PRIMARY KEY,
-    producto_id NUMBER(10) NOT NULL,
-    sucursal_id NUMBER(10) NOT NULL,
-    stock NUMBER(10) NOT NULL,
-    CONSTRAINT INVENTARIO_SUCURSAL_FK FOREIGN KEY (sucursal_id) 
-        REFERENCES SUCURSAL(sucursal_id) ON DELETE CASCADE,
-    CONSTRAINT INVENTARIO_PRODUCTO_FK FOREIGN KEY (producto_id) 
-        REFERENCES PRODUCTO(producto_id) ON DELETE CASCADE,
-    CONSTRAINT INVENTARIO_UNIQUE UNIQUE (producto_id, sucursal_id)
-);
 
 -- Tabla PAGO
 CREATE TABLE PAGO (
@@ -194,7 +200,7 @@ CREATE TABLE PAGO (
     fecha_pago DATE DEFAULT SYSDATE NOT NULL,
     estado_pago_id NUMBER(10) NOT NULL,
     transaccion_id VARCHAR2(200),
-    detalle VARCHAR2(200),
+    detalle CLOB,
     contador_id NUMBER(10),
     CONSTRAINT PAGO_PEDIDO_FK FOREIGN KEY (pedido_id) 
         REFERENCES PEDIDO(pedido_id) ON DELETE CASCADE,
@@ -225,39 +231,13 @@ VALUES (5, 'Contador');
 
 
 -- Insertar usuarios con rol Cliente
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (1, '12345678-9', 'Juan', 'Pérez', 'Gómez', 'Carlos', 'juan.perez@gmail.com', '987654321', 'Calle Ficticia 123, Santiago, Chile', 'juan', 1);
 
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (2, '23456789-0', 'Ana', 'Martínez', 'Lopez', 'Fernanda', 'ana.martinez@gmail.com', '912345678', 'Av. Los Leones 456, Santiago, Chile', 'hashed_password_2', 1);
+INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
+VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gmail.com', '923456789', 'Calle Bellavista 789, Valparaíso, Chile', 'carlos', 0, 2);
 
--- Insertar usuarios con rol Vendedor
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gmail.com', '923456789', 'Calle Bellavista 789, Valparaíso, Chile', 'carlos', 2);
+INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
+VALUES (6, '67890123-4', 'Carla', 'Fernández', 'Muñoz', 'Gabriela', 'carla.fernandez@gmail.com', '956789012', 'Calle San Martín 987, Temuco, Chile', 'carla', 1, 3);
 
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (4, '45678901-2', 'Lucía', 'Rodríguez', 'Paredes', 'Mariana', 'lucia.rodriguez@gmail.com', '934567890', 'Calle Aldea 321, Viña del Mar, Chile', 'hashed_password_4', 2);
-
--- Insertar usuarios con rol Administrador
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (5, '56789012-3', 'Pedro', 'Sánchez', 'Bravo', 'Roberto', 'pedro.sanchez@gmail.com', '945678901', 'Av. Providencia 456, Santiago, Chile', 'hashed_password_5', 3);
-
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (6, '67890123-4', 'Carla', 'Fernández', 'Muñoz', 'Gabriela', 'carla.fernandez@gmail.com', '956789012', 'Calle San Martín 987, Temuco, Chile', 'carla', 3);
-
--- Insertar usuarios con rol Bodeguero
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (7, '78901234-5', 'Luis', 'Méndez', 'Ríos', 'Daniel', 'luis.mendez@gmail.com', '967890123', 'Av. O’Higgins 1234, Concepción, Chile', 'luis', 4);
-
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (8, '89012345-6', 'María', 'Castro', 'Fuentes', 'Patricia', 'maria.castro@gmail.com', '978901234', 'Calle Prat 567, Antofagasta, Chile', 'hashed_password_8', 4);
-
--- Insertar usuarios con rol Contador
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (9, '90123456-7', 'Ricardo', 'López', 'Vega', 'Eduardo', 'ricardo.lopez@gmail.com', '989012345', 'Calle Libertador 1010, La Serena, Chile', 'hashed_password_9', 5);
-
-INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, rol_id)
-VALUES (10, '01234567-8', 'Sofía', 'Ramírez', 'Pizarro', 'Elena', 'sofia.ramirez@gmail.com', '990123456', 'Calle Valparaíso 202, Punta Arenas, Chile', 'sofia', 5);
 
 -- REGIONES
 INSERT INTO REGION (region_id, nombre) VALUES (1, 'Región Metropolitana');
@@ -274,15 +254,37 @@ INSERT INTO COMUNA (comuna_id, nombre, region_id) VALUES (4, 'Concepción', 3);
 INSERT INTO MARCA (marca_id, nombre) VALUES (1, 'Truper');
 INSERT INTO MARCA (marca_id, nombre) VALUES (2, 'Bosch');
 INSERT INTO MARCA (marca_id, nombre) VALUES (3, 'Stanley');
+INSERT INTO MARCA (marca_id, nombre) VALUES (4, 'Makita');
+INSERT INTO MARCA (marca_id, nombre) VALUES (5, 'DeWalt');
+INSERT INTO MARCA (marca_id, nombre) VALUES (6, 'Black+Decker');
+INSERT INTO MARCA (marca_id, nombre) VALUES (7, 'Hilti');
+INSERT INTO MARCA (marca_id, nombre) VALUES (8, 'Irwin');
+INSERT INTO MARCA (marca_id, nombre) VALUES (9, 'Bahco');
+INSERT INTO MARCA (marca_id, nombre) VALUES (10, 'Klein Tools');
+INSERT INTO MARCA (marca_id, nombre) VALUES (11, 'Milwaukee');
+INSERT INTO MARCA (marca_id, nombre) VALUES (12, '3M');
+INSERT INTO MARCA (marca_id, nombre) VALUES (13, 'Sodimac');
+INSERT INTO MARCA (marca_id, nombre) VALUES (14, 'Volumen Industrial');
+INSERT INTO MARCA (marca_id, nombre) VALUES (15, 'Hyundai');
+INSERT INTO MARCA (marca_id, nombre) VALUES (16, 'Bosque Tools');
 
 -- CATEGORIAS
 INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (1, 'Herramientas Manuales', 'Herramientas de uso manual');
 INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (2, 'Herramientas Eléctricas', 'Herramientas con motor eléctrico');
 INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (3, 'Materiales de Construcción', 'Materiales básicos para construcción');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (4, 'Ferretería General', 'Artículos generales de ferretería');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (5, 'Pinturas y Adhesivos', 'Pinturas, barnices y adhesivos');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (6, 'Electricidad', 'Materiales y herramientas eléctricas');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (7, 'Plomería', 'Materiales y herramientas de plomería');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (8, 'Seguridad Industrial', 'Elementos de protección personal y seguridad');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (9, 'Jardinería', 'Herramientas y productos para jardín');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (10, 'Construcción Pesada', 'Materiales y herramientas para construcción pesada');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (11, 'Volumen Industrial', 'Productos para uso industrial y grandes volúmenes');
+INSERT INTO CATEGORIA (categoria_id, nombre, descripcion) VALUES (12, 'Automotriz', 'Herramientas y productos automotrices');
 
 -- ESTADO PEDIDO
 INSERT INTO ESTADO (estado_id, nombre) VALUES (1, 'Pendiente');
-INSERT INTO ESTADO (estado_id, nombre) VALUES (2, 'En Proceso');
+INSERT INTO ESTADO (estado_id, nombre) VALUES (2, 'Entregado');
 INSERT INTO ESTADO (estado_id, nombre) VALUES (3, 'Completado');
 INSERT INTO ESTADO (estado_id, nombre) VALUES (4, 'Cancelado');
 
@@ -292,27 +294,18 @@ INSERT INTO ESTADO_PAGO (estado_pago_id, nombre) VALUES (2, 'Pendiente');
 INSERT INTO ESTADO_PAGO (estado_pago_id, nombre) VALUES (3, 'Rechazado');
 
 -- METODO PAGO
-INSERT INTO METODO_PAGO (metodo_pago, nombre) VALUES (1, 'Efectivo');
-INSERT INTO METODO_PAGO (metodo_pago, nombre) VALUES (2, 'Tarjeta Débito');
-INSERT INTO METODO_PAGO (metodo_pago, nombre) VALUES (3, 'Tarjeta Crédito');
+INSERT INTO METODO_PAGO (metodo_pago, nombre) VALUES (1, 'Paypal');
 INSERT INTO METODO_PAGO (metodo_pago, nombre) VALUES (4, 'Transferencia');
 
 -- SUCURSALES
-INSERT INTO SUCURSAL (sucursal_id, nombre, direccion, comuna_id, fono, responsable_id) VALUES (1, 'Sucursal Central', 'Av. Matucana 1001', 1, '226000001', 5);
+INSERT INTO SUCURSAL (sucursal_id, nombre, direccion, comuna_id, fono, responsable_id) VALUES (1, 'Sucursal Central', 'Av. Matucana 1001', 1, '226000001', 6);
 INSERT INTO SUCURSAL (sucursal_id, nombre, direccion, comuna_id, fono, responsable_id) VALUES (2, 'Sucursal Valparaíso', 'Calle Blanco 123', 3, '322600002', 6);
 
 -- PRODUCTOS
-INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, categoria_id, marca_id) VALUES (1, 'Martillo Carpintero', 'Martillo de acero, mango de madera', 4500, 1, 1);
-INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, categoria_id, marca_id) VALUES (2, 'Taladro Percutor', 'Taladro eléctrico 600W', 39990, 2, 2);
-INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, categoria_id, marca_id) VALUES (3, 'Caja de Clavos 2"', 'Caja de 1kg de clavos de 2 pulgadas', 2500, 3, 3);
-INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, categoria_id, marca_id) VALUES (4, 'Destornillador Plano', 'Destornillador plano 6"', 1800, 1, 1);
 
--- INVENTARIO
-INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (1, 1, 1, 50);
-INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (2, 2, 1, 20);
-INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (3, 3, 1, 100);
-INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (4, 4, 2, 30);
-INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (5, 2, 2, 10);
+
+INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (1, 'Despacho a domicilio');
+INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (2, 'Retiro en tienda');
 
 -- PEDIDOS
 
@@ -321,3 +314,5 @@ INSERT INTO INVENTARIO (Inventario_id, producto_id, sucursal_id, stock) VALUES (
 -- PAGOS
 
 commit;
+
+select * from usuario;

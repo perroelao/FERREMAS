@@ -53,6 +53,19 @@
                                 {% csrf_token %}
                                 <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">Rechazar</button>
                             </form>
+                            <!-- BOTÓN VER DETALLE -->
+                            <button type="button"
+                                onclick="toggleDetallePedido('{{ pedido.pedido_id }}', this)"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition ml-2">
+                                Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="detalle-pedido-{{ pedido.pedido_id }}" class="hidden bg-orange-50">
+                        <td colspan="6" class="py-2 px-4">
+                            <div class="flex justify-center items-center py-4" id="detalle-content-{{ pedido.pedido_id }}">
+                                <span class="text-gray-400">Cargando detalles...</span>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -64,5 +77,229 @@
             </table>
         </div>
     </div>
+        <!-- SECCIÓN EXTRA: Gestión de Productos para el bodeguero -->
+        <div class="container mx-auto py-8">
+            <h2 class="text-2xl font-bold mt-12 mb-6 text-orange-600">Gestión de Productos</h2>
+
+            <!-- Formulario agregar producto -->
+            <form method="post" action="{% url 'agregar_producto' %}" enctype="multipart/form-data" class="bg-white p-6 rounded shadow mb-8 border border-orange-200">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label for="nombre" class="block text-sm font-semibold text-gray-700 mb-1">Nombre:</label>
+            <input name="nombre" id="nombre" placeholder="Nombre" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+        </div>
+        <div>
+            <label for="descripcion" class="block text-sm font-semibold text-gray-700 mb-1">Descripción:</label>
+            <input name="descripcion" id="descripcion" placeholder="Descripción" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        </div>
+        <div>
+            <label for="precio" class="block text-sm font-semibold text-gray-700 mb-1">Precio:</label>
+            <input name="precio" id="precio" type="number" placeholder="Precio" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+        </div>
+        <div>
+            <label for="stock" class="block text-sm font-semibold text-gray-700 mb-1">Stock:</label>
+            <input name="stock" id="stock" type="number" placeholder="Stock" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+        </div>
+        <div>
+            <label for="imagen_file" class="block text-sm font-semibold text-gray-700 mb-1">Imagen:</label>
+            <input type="file" name="imagen_file" id="imagen_file" accept="image/*" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required onchange="previewImagen(event)">
+            <div id="preview-imagen" class="mt-2"></div>
+        </div>
+        <div>
+            <label for="categoria_id" class="block text-sm font-semibold text-gray-700 mb-1">Categoría:</label>
+            <select name="categoria_id" id="categoria_id" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.categoria_id }}">{{ categoria.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="marca_id" class="block text-sm font-semibold text-gray-700 mb-1">Marca:</label>
+            <select name="marca_id" id="marca_id" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                {% for marca in marcas %}
+                    <option value="{{ marca.marca_id }}">{{ marca.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        </div>
+
+            <button type="submit" class="mt-4 bg-orange-600 text-white px-6 py-2 rounded font-semibold hover:bg-orange-700 transition">Agregar Producto</button>
+        </form>
+
+        <!-- Tabla de productos -->
+        <div class="overflow-x-auto rounded shadow bg-white border border-orange-200">
+            <table class="min-w-full">
+                <thead class="bg-orange-100">
+                    <tr>
+                        <th class="py-2 px-4">ID</th>
+                        <th class="py-2 px-4">Nombre</th>
+                        <th class="py-2 px-4">Descripción</th>
+                        <th class="py-2 px-4">Precio</th>
+                        <th class="py-2 px-4">Stock</th>
+                        <th class="py-2 px-4">Categoría</th>
+                        <th class="py-2 px-4">Marca</th>
+                        <th class="py-2 px-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td class="py-2 px-4">{{ producto.producto_id }}</td>
+                        <td class="py-2 px-4">{{ producto.nombre }}</td>
+                        <td class="py-2 px-4">{{ producto.descripcion }}</td>
+                        <td class="py-2 px-4">${{ producto.precio }}</td>
+                        <td class="py-2 px-4">{{ producto.stock }}</td>
+                        <td class="py-2 px-4">{{ producto.categoria_id }}</td>
+                        <td class="py-2 px-4">{{ producto.marca_id }}</td>
+                        <td class="py-2 px-4">
+                            <button
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+                                onclick="abrirModalEditarProducto(
+                                    '{{ producto.producto_id }}',
+                                    '{{ producto.nombre|escapejs }}',
+                                    '{{ producto.descripcion|escapejs }}',
+                                    '{{ producto.precio }}',
+                                    '{{ producto.stock }}',
+                                    '{{ producto.categoria_id }}',
+                                    '{{ producto.marca_id }}'
+                                )">
+                                Editar
+                            </button>
+                                <form method="post" action="{% url 'eliminar_producto' %}" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este producto?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="producto_id" value="{{ producto.producto_id }}">
+                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition ml-2">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-gray-500">No hay productos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <!-- Modal de edición de producto -->
+<div id="modal-editar-producto" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg relative">
+        <button onclick="cerrarModalEditarProducto()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-orange-600">Editar Producto</h3>
+        <form id="form-editar-producto" method="post" action="{% url 'editar_producto' %}">
+            {% csrf_token %}
+            <input type="hidden" name="producto_id" id="edit_producto_id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="edit_nombre" class="block text-sm font-semibold text-gray-700 mb-1">Nombre:</label>
+                    <input name="nombre" id="edit_nombre" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                </div>
+                <div>
+                    <label for="edit_descripcion" class="block text-sm font-semibold text-gray-700 mb-1">Descripción:</label>
+                    <input name="descripcion" id="edit_descripcion" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                </div>
+                <div>
+                    <label for="edit_precio" class="block text-sm font-semibold text-gray-700 mb-1">Precio:</label>
+                    <input name="precio" id="edit_precio" type="number" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                </div>
+                <div>
+                    <label for="edit_stock" class="block text-sm font-semibold text-gray-700 mb-1">Stock:</label>
+                    <input name="stock" id="edit_stock" type="number" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                </div>
+                <div>
+                    <label for="edit_categoria_id" class="block text-sm font-semibold text-gray-700 mb-1">Categoría:</label>
+                    <select name="categoria_id" id="edit_categoria_id" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.categoria_id }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="edit_marca_id" class="block text-sm font-semibold text-gray-700 mb-1">Marca:</label>
+                    <select name="marca_id" id="edit_marca_id" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                        {% for marca in marcas %}
+                            <option value="{{ marca.marca_id }}">{{ marca.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+            </table>
+        </div>
+    </div>
+    <script>
+function abrirModalEditarProducto(id, nombre, descripcion, precio, stock, categoria_id, marca_id) {
+    document.getElementById('modal-editar-producto').classList.remove('hidden');
+    document.getElementById('edit_producto_id').value = id;
+    document.getElementById('edit_nombre').value = nombre;
+    document.getElementById('edit_descripcion').value = descripcion;
+    document.getElementById('edit_precio').value = precio;
+    document.getElementById('edit_stock').value = stock;
+    document.getElementById('edit_categoria_id').value = categoria_id;
+    document.getElementById('edit_marca_id').value = marca_id;
+}
+function cerrarModalEditarProducto() {
+    document.getElementById('modal-editar-producto').classList.add('hidden');
+}
+</script>
+    <script>
+function previewImagen(event) {
+    const input = event.target;
+    const preview = document.getElementById('preview-imagen');
+    preview.innerHTML = '';
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="mt-2 rounded shadow max-h-32">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+    <script>
+    function toggleDetallePedido(pedidoId, btn) {
+        const fila = document.getElementById('detalle-pedido-' + pedidoId);
+        if (fila.classList.contains('hidden')) {
+            fila.classList.remove('hidden');
+            const content = document.getElementById('detalle-content-' + pedidoId);
+            if (!content.dataset.loaded) {
+                fetch(`/ajax/detalle_pedido/${pedidoId}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.productos && data.productos.length > 0) {
+                            let html = `<table class="w-full text-sm"><thead>
+                                <tr>
+                                    <th class="px-2 py-1">Producto</th>
+                                    <th class="px-2 py-1">Cantidad</th>
+                                    <th class="px-2 py-1">Precio Unitario</th>
+                                </tr>
+                            </thead><tbody>`;
+                            data.productos.forEach(prod => {
+                                html += `<tr>
+                                    <td class="px-2 py-1">${prod.nombre}</td>
+                                    <td class="px-2 py-1 text-center">${prod.cantidad}</td>
+                                    <td class="px-2 py-1 text-right">$${prod.precio_unit}</td>
+                                </tr>`;
+                            });
+                            html += '</tbody></table>';
+                            content.innerHTML = html;
+                        } else {
+                            content.innerHTML = '<span class="text-gray-400">Sin productos.</span>';
+                        }
+                        content.dataset.loaded = "1";
+                    });
+            }
+            btn.textContent = "Ocultar Detalle";
+            btn.classList.remove("bg-blue-600");
+            btn.classList.add("bg-gray-600");
+        } else {
+            fila.classList.add('hidden');
+            btn.textContent = "Ver Detalle";
+            btn.classList.remove("bg-gray-600");
+            btn.classList.add("bg-blue-600");
+        }
+    }
+    </script>
 </body>
 </html>

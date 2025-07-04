@@ -98,6 +98,7 @@
                     <td class="px-4 py-2 text-center">
                         <button class="text-red-600 hover:underline remove-btn" data-idx="${idx}">Eliminar</button>
                     </td>
+                    <input type="hidden" name="producto_id" value="${item.producto_id}">
                 </tr>
             `;
         });
@@ -123,6 +124,7 @@
                 loadCart();
             };
         });
+
         document.querySelectorAll('.cantidad-input').forEach(input => {
             input.onchange = function() {
                 let val = parseInt(input.value);
@@ -132,6 +134,19 @@
                 loadCart();
             };
         });
+    }
+
+    // Función para agregar al carrito
+    function agregarAlCarrito(producto_id, precio, nombre) {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push({
+            producto_id: parseInt(producto_id),
+            cantidad: 1,
+            precio_unit: parseFloat(precio),
+            nombre: nombre
+        });
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCart();
     }
 
     // Cargar carrito al iniciar

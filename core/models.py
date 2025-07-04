@@ -33,6 +33,7 @@ class Usuario(models.Model):
     fono = models.CharField(max_length=20, blank=True, null=True)
     direccion = models.CharField(max_length=200, blank=True, null=True)
     password = models.CharField(max_length=200)
+    debe_cambiar_password = models.IntegerField(default=0)  # 0: No, 1: Sí
     rol = models.ForeignKey(Rol, on_delete=models.DO_NOTHING)
 
     class Meta:
@@ -58,9 +59,10 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.CharField(max_length=300, blank=True, null=True)
     precio = models.IntegerField()
+    stock = models.IntegerField(default=0)
     categoria = models.ForeignKey(Categoria, on_delete=models.DO_NOTHING)
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING)
-    imagen = models.BinaryField(blank=True, null=True)
+    imagen = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'producto'
@@ -107,20 +109,28 @@ class Inventario(models.Model):
         db_table = 'inventario'
         unique_together = (('producto', 'sucursal'),)
 
+class TipoDespacho(models.Model):
+    tipo_despacho_id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'TIPO_DESPACHO'
+
 class Pedido(models.Model):
-    pedido_id = models.AutoField(primary_key=True)
+    pedido_id = models.IntegerField(primary_key=True)
     cliente = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     fecha_pedido = models.DateField(auto_now_add=True)
     estado = models.ForeignKey(Estado, on_delete=models.DO_NOTHING)
-    sucursal_retiro = models.ForeignKey(Sucursal, on_delete=models.DO_NOTHING, blank=True, null=True)
+    sucursal = models.ForeignKey(Sucursal, db_column='sucursal_retiro', on_delete=models.DO_NOTHING, blank=True, null=True)
     total = models.IntegerField()
+    tipo_despacho = models.ForeignKey(TipoDespacho, db_column='tipo_despacho_id', on_delete=models.DO_NOTHING)
     vendedor = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, related_name='pedido_vendedor_set')
 
     class Meta:
-        db_table = 'pedido'
+        db_table = 'PEDIDO'
 
 class DetallePedido(models.Model):
-    detalle_id = models.AutoField(primary_key=True)
+    detalle_id = models.IntegerField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.DO_NOTHING)
     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
     cantidad = models.IntegerField()
@@ -137,7 +147,7 @@ class Pago(models.Model):
     fecha_pago = models.DateField(auto_now_add=True)
     estado_pago = models.ForeignKey(EstadoPago, on_delete=models.DO_NOTHING)
     transaccion_id = models.CharField(max_length=200, blank=True, null=True)
-    detalle = models.CharField(max_length=200, blank=True, null=True)
+    detalle = models.TextField(blank=True, null=True)
     contador = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, blank=True, null=True)
 
     class Meta:

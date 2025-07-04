@@ -59,13 +59,57 @@
                                 {% csrf_token %}
                                 <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">Rechazar</button>
                             </form>
+                            <!-- BOTÓN VER DETALLE -->
+                            <button type="button"
+                                onclick="toggleDetallePago('{{ pago.pago_id }}', this)"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition ml-2">
+                                Ver Detalle
+                            </button>
                         </td>
                     </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-gray-500">No hay pagos pendientes.</td>
+                    <!-- Fila extensible para el detalle -->
+                    <tr id="detalle-pago-{{ pago.pago_id }}" class="hidden bg-orange-50">
+                        <td colspan="7" class="py-2 px-4">
+                            <div class="flex justify-center items-center py-4" id="detalle-content-pago-{{ pago.pago_id }}">
+                                <span class="text-gray-400">Cargando detalles...</span>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
+                        {% if not pagos %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-gray-500">No hay pagos pendientes por aprobar.</td>
+                        </tr>
+                        {% endif %}
+                        <script>
+                            function toggleDetallePago(pagoId, btn) {
+                                const fila = document.getElementById('detalle-pago-' + pagoId);
+                                if (fila.classList.contains('hidden')) {
+                                    fila.classList.remove('hidden');
+                                    const content = document.getElementById('detalle-content-pago-' + pagoId);
+                                    if (!content.dataset.loaded) {
+                                        fetch(`/ajax/detalle_pago/${pagoId}/`)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                if (data.foto) {
+                                                    content.innerHTML = `<img src="${data.foto}" alt="Comprobante" class="max-h-64 mx-auto rounded shadow">`;
+                                                } else {
+                                                    content.innerHTML = '<span class="text-gray-400">Sin comprobante adjunto.</span>';
+                                                }
+                                                content.dataset.loaded = "1";
+                                            });
+                                    }
+                                    btn.textContent = "Ocultar Detalle";
+                                    btn.classList.remove("bg-blue-600");
+                                    btn.classList.add("bg-gray-600");
+                                } else {
+                                    fila.classList.add('hidden');
+                                    btn.textContent = "Ver Detalle";
+                                    btn.classList.remove("bg-gray-600");
+                                    btn.classList.add("bg-blue-600");
+                                }
+                            }
+                            </script>
                 </tbody>
             </table>
         </div>

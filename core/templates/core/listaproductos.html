@@ -14,6 +14,13 @@
             <a href="{% url 'home' %}" class="text-3xl font-extrabold text-orange-600 flex items-center gap-2">
                 <img src="{% static 'assets/img/logo.png' %}" alt="Logo Mi Ferretería Online" class="h-20 w-auto">
             </a>
+            <div class="hidden md:flex flex-grow justify-center px-4">
+                <div class="relative w-full max-w-lg">
+                    <input type="search" id="search-input-desktop" placeholder="Buscar herramientas, materiales, etc." class="w-full py-2.5 px-4 pr-10 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    <button type="submit" aria-label="Buscar" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-orange-600">
+                    </button>
+                </div>
+            </div>
             <a href="{% url 'carrito' %}" class="btn btn-secondary px-6 py-2 rounded-lg font-semibold bg-orange-600 text-white hover:bg-orange-700">
                 Ver Carrito
             </a>
@@ -22,6 +29,9 @@
 
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold mb-8 text-center">Todos los Productos</h1>
+                <div id="product-grid" class="flex justify-center">
+                    <!-- Los productos se cargarán aquí dinámicamente -->
+                </div>
         <div id="productos-error" class="text-center text-red-500 mt-8 hidden">
             No se pudieron cargar los productos.
         </div>
@@ -29,60 +39,120 @@
     </main>
 
     <script>
-    // Lógica robusta para agregar al carrito usando data-*
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-to-cart')) {
-            const id = e.target.dataset.id;
-            const nombre = e.target.dataset.nombre;
-            const precio = parseFloat(e.target.dataset.precio);
-            const imagen = e.target.dataset.imagen;
-
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            let prod = cart.find(p => p.producto_id == id);
-            if (prod) {
-                prod.cantidad += 1;
-            } else {
-                cart.push({
-                    producto_id: id,
-                    nombre: nombre,
-                    precio_unit: precio,
-                    cantidad: 1,
-                    imagen: imagen
-                });
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            alert('Producto agregado al carrito');
+    if (e.target.classList.contains('add-to-cart')) {
+        // Validar que el ID exista y sea válido
+        const id = e.target.dataset.id;
+        if (!id || id === 'null') {
+            console.error('Error: ID de producto no válido');
+            alert('Error: No se pudo agregar el producto al carrito');
+            return;
         }
-    });
 
-    fetch('http://localhost:3002/productos/')
-        .then(response => response.json())
-        .then(data => {
-            const contenedor = document.getElementById('productos');
-            contenedor.innerHTML = '';
-            data.forEach(producto => {
-                contenedor.innerHTML += `
-                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
-                        ${producto.imagen ? `<img src="${producto.imagen}" alt="${producto.nombre}" class="mb-4 w-32 h-32 object-contain rounded">` : ''}
-                        <span class="block text-lg font-semibold text-gray-800 mb-2">${producto.nombre}</span>
-                        <span class="block text-xl font-bold text-green-600 mb-2">$${producto.precio.toLocaleString('es-CL')}</span>
-                        <div class="flex flex-col gap-2 w-full mt-4">
-                            <a href="/producto/${producto.id}/" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-center">Ver producto</a>
-                            <button
-                                class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition w-full add-to-cart"
-                                data-id="${producto.id}"
-                                data-nombre="${producto.nombre.replace(/"/g, '&quot;')}"
-                                data-precio="${producto.precio}"
-                                data-imagen="${producto.imagen ? producto.imagen : ''}"
-                            >Añadir al Carrito</button>
-                        </div>
-                    </div>
-                `;
+        const producto_id = parseInt(id);
+        const nombre = e.target.dataset.nombre;
+        const precio = parseFloat(e.target.dataset.precio);
+        const imagen = e.target.dataset.imagen;
+
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let prod = cart.find(p => p.producto_id === producto_id);
+        
+        if (prod) {
+            prod.cantidad += 1;
+        } else {
+            // Validar todos los campos antes de agregar
+            if (!nombre || !precio || isNaN(precio)) {
+                console.error('Error: Datos de producto incompletos');
+                alert('Error: No se pudo agregar el producto al carrito');
+                return;
+            }
+
+            cart.push({
+                producto_id: producto_id,
+                nombre: nombre,
+                precio_unit: precio,
+                cantidad: 1,
+                imagen: imagen
             });
-        })
-        .catch(error => {
-            document.getElementById('productos-error').classList.remove('hidden');
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        console.log('Producto agregado:', {
+            producto_id,
+            nombre,
+            precio,
+            imagen
         });
+        alert('Producto agregado al carrito');
+    }
+});
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('http://localhost:3002/productos')
+            .then(response => response.json())
+            .then(data => {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = '';
+                data.forEach(producto => {
+                    const stock = producto.stock ?? 0;
+                    const stockClass = stock < 15 ? 'text-red-600 font-bold' : 'text-gray-600 font-semibold';
+                    grid.innerHTML += `
+                    <div class="product-card">
+                        <div>
+                            <a href="/producto/${producto.producto_id}" class="block text-center">
+                                <img src="${producto.imagen || 'https://placehold.co/300x300/F59E0B/FFFFFF?text=' + encodeURIComponent(producto.nombre)}" alt="${producto.nombre}" class="rounded-lg">
+                                <h3 class="mt-4 text-lg font-semibold text-gray-800 hover:text-orange-600">${producto.nombre}</h3>
+                            </a>
+                            <p class="price mt-2 text-xl font-bold text-green-600">$${producto.precio}</p>
+                            <p class="mt-1 text-sm ${stockClass}">Stock: ${stock}</p>
+                        </div>
+                        <button 
+                            class="btn btn-primary w-full mt-4 py-2.5 add-to-cart" 
+                            data-id="${producto.producto_id}" 
+                            data-nombre="${producto.nombre}" 
+                            data-precio="${producto.precio}" 
+                            data-imagen="${producto.imagen}">
+                            Añadir al Carrito
+                        </button>
+                    </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                document.getElementById('product-grid').innerHTML = '<p class="text-red-500">No se pudieron cargar los productos.</p>';
+            });
+    });
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Desktop
+    const searchInput = document.getElementById('search-input-desktop');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = searchInput.value.trim();
+                if (q) {
+                    window.location.href = "{% url 'busqueda_productos' %}?q=" + encodeURIComponent(q);
+                }
+            }
+        });
+    }
+    // Mobile
+    const searchInputMobile = document.getElementById('search-input-mobile');
+    if (searchInputMobile) {
+        searchInputMobile.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = searchInputMobile.value.trim();
+                if (q) {
+                    window.location.href = "{% url 'busqueda_productos' %}?q=" + encodeURIComponent(q);
+                }
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

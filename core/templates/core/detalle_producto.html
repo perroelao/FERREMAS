@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle del Producto - FERREMAS</title>
+    <title>{{ producto.nombre|default:"Detalle del Producto" }} - FERREMAS</title>
     <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-white shadow-md sticky top-0 z-50 mb-8">
         <div class="container mx-auto px-4 flex items-center justify-between h-20">
-            <a href="{% url 'listaproductos' %}" class="text-2xl font-bold text-orange-600">
-                <img src="https://placehold.co/150x50/D97706/FFFFFF?text=MiFerretería" alt="Logo Mi Ferretería Online" class="h-10">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-orange-600 flex items-center gap-2">
+                <img src="{% static 'assets/img/logo.png' %}" alt="FERREMAS" class="h-10">
+                FERREMAS
             </a>
             <a href="{% url 'carrito' %}" class="btn btn-secondary px-6 py-2 rounded-lg font-semibold bg-orange-600 text-white hover:bg-orange-700">
                 Ver Carrito
@@ -22,34 +23,81 @@
 
     <main class="container mx-auto px-4 py-12">
         {% if producto %}
-            <div class="bg-white rounded-lg shadow-md p-8 max-w-xl mx-auto flex flex-col items-center">
-                <h1 class="text-3xl font-bold mb-4 text-center">{{ producto.nombre }}</h1>
-                {% if producto.imagen %}
-                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="mb-4 w-64 h-64 object-contain rounded">
-                {% endif %}
-                <p class="mb-2 text-gray-700 text-center">{{ producto.descripcion }}</p>
-                <span class="block text-2xl font-bold text-green-600 mb-4">$ {{ producto.precio|floatformat:0 }}</span>
-                <p class="mb-2 text-gray-500">Categoría: {{ producto.categoria }}</p>
-                <p class="mb-2 text-gray-500">Marca: {{ producto.marca }}</p>
-                <div class="flex flex-col gap-2 w-full mt-4">
-                    <button
-                        class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition w-full add-to-cart"
-                        data-id="{{ producto.id }}"
-                        data-nombre="{{ producto.nombre|escapejs }}"
-                        data-precio="{{ producto.precio }}"
-                        data-imagen="{{ producto.imagen|default_if_none:'' }}"
-                    >Añadir al Carrito</button>
-                    <a href="{% url 'listaproductos' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-center">Volver a productos</a>
+            <div class="bg-white rounded-lg shadow-md p-8 max-w-4xl mx-auto flex flex-col md:flex-row gap-10 items-center">
+                <div class="flex-shrink-0 w-full md:w-1/2 flex flex-col items-center">
+                    <img src="{{ producto.imagen|default:'https://placehold.co/400x400?text=Sin+Imagen' }}" alt="{{ producto.nombre }}" class="w-80 h-80 object-contain rounded border border-orange-200 bg-gray-50 mb-4">
+                    <div class="flex gap-2 mt-2">
+                        <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded text-xs font-semibold">Categoría: {{ producto.categoria.nombre }}</span>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold">Marca: {{ producto.marca.nombre }}</span>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col gap-3">
+                    <h1 class="text-4xl font-bold mb-2 text-orange-700">{{ producto.nombre }}</h1>
+                    <div class="flex items-center gap-4 mb-2">
+                        <span class="block text-3xl font-bold text-green-600">${{ producto.precio|floatformat:0 }}</span>
+                        {% if producto.stock > 0 %}
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-semibold">Stock: {{ producto.stock }}</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-semibold">Sin stock</span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-2 text-gray-700 text-lg">{{ producto.descripcion }}</p>
+                    <ul class="mb-4 text-gray-600 text-sm list-disc pl-5">
+                        {% if producto.peso %}<li><b>Peso:</b> {{ producto.peso }} kg</li>{% endif %}
+                        {% if producto.material %}<li><b>Material:</b> {{ producto.material }}</li>{% endif %}
+                        {% if producto.color %}<li><b>Color:</b> {{ producto.color }}</li>{% endif %}
+                        {% if producto.origen %}<li><b>Origen:</b> {{ producto.origen }}</li>{% endif %}
+                        <!-- Agrega más detalles técnicos si existen en tu modelo -->
+                    </ul>
+                    <div class="flex flex-col gap-2 mt-4">
+                        <button
+                            class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition font-semibold add-to-cart"
+                            data-id="{{ producto.producto_id }}"
+                            data-nombre="{{ producto.nombre|escapejs }}"
+                            data-precio="{{ producto.precio }}"
+                            data-imagen="{{ producto.imagen|default_if_none:'' }}"
+                            {% if producto.stock == 0 %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}
+                        >Añadir al Carrito</button>
+                        <a href="{% url 'listaproductos' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-center font-semibold">Volver a productos</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Todos los productos -->
+            <div class="max-w-6xl mx-auto mt-16">
+                <h2 class="text-2xl font-bold text-orange-600 mb-6">Todos los productos</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    {% for prod in todos_productos %}
+                        <div class="bg-white rounded-lg shadow border border-orange-200 p-4 flex flex-col items-center hover:shadow-lg transition">
+                            <a href="{% url 'detalle_producto' prod.producto_id %}">
+                                <img src="{{ prod.imagen|default:'https://placehold.co/200x200?text=Sin+Imagen' }}" alt="{{ prod.nombre }}" class="h-32 object-contain mb-2 rounded">
+                                <h3 class="font-semibold text-base mb-1 text-orange-700 text-center">{{ prod.nombre }}</h3>
+                            </a>
+                            <p class="text-green-600 font-bold text-lg mb-1">${{ prod.precio|floatformat:0 }}</p>
+                            <button
+                                class="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 transition font-semibold add-to-cart mt-auto"
+                                data-id="{{ prod.producto_id }}"
+                                data-nombre="{{ prod.nombre|escapejs }}"
+                                data-precio="{{ prod.precio }}"
+                                data-imagen="{{ prod.imagen|default_if_none:'' }}"
+                                {% if prod.stock == 0 %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}
+                            >Añadir</button>
+                        </div>
+                    {% empty %}
+                        <div class="col-span-4 text-center text-gray-400">No hay productos disponibles.</div>
+                    {% endfor %}
                 </div>
             </div>
         {% else %}
             <div class="text-center text-red-600 font-bold text-xl">Producto no encontrado.</div>
+            <div class="text-center mt-6">
+                <a href="{% url 'listaproductos' %}" class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition font-semibold">Volver a productos</a>
+            </div>
         {% endif %}
     </main>
     <script>
     // Lógica robusta para agregar al carrito usando data-*
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-to-cart')) {
+        if (e.target.classList.contains('add-to-cart') && !e.target.disabled) {
             const id = e.target.dataset.id;
             const nombre = e.target.dataset.nombre;
             const precio = parseFloat(e.target.dataset.precio);
