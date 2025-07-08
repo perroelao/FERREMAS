@@ -40,14 +40,21 @@
                     <span class="ml-2">Retiro en tienda</span>
                 </label>
             </div>
+            <div id="direccion-despacho-div" style="display:none;">
+                <label>
+                    Dirección de entrega:
+                    <input type="text" id="direccion_despacho" name="direccion_despacho"
+                        class="border rounded px-2 py-1 w-full"
+                        value="{{ direccion_usuario|default:'' }}"
+                        placeholder="Ej: Av. Siempre Viva 1234" />
+                </label>
+            </div>
             <!-- Sucursal para retiro (oculta por defecto) -->
             <div id="sucursal-retiro-div" style="display:none;">
                 <label>
                     Sucursal para retiro:
                     <select id="sucursal_retiro" class="border rounded px-2 py-1 w-full">
                         <option value="1">Sucursal Central</option>
-                        <option value="2">Sucursal Norte</option>
-                        <option value="3">Sucursal Sur</option>
                     </select>
                 </label>
             </div>
@@ -236,6 +243,7 @@
             btn.textContent = "Confirmar Pedido";
         });
     }
+    
 
     // Mostrar resumen al cargar
     mostrarResumen();

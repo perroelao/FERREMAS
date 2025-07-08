@@ -230,8 +230,7 @@ INSERT INTO ROL (rol_id, nombre)
 VALUES (5, 'Contador');
 
 
--- Insertar usuarios con rol Cliente
-
+-- Insertar usuarios
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
 VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gmail.com', '923456789', 'Calle Bellavista 789, Valparaíso, Chile', 'carlos', 0, 2);
 
@@ -314,5 +313,3 @@ INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (2, 'Retiro en tiend
 -- PAGOS
 
 commit;
-
-select * from usuario;

@@ -14,7 +14,7 @@
             <form id="registro-form" class="space-y-4">
                 <div>
                     <label for="rut" class="block mb-1 font-semibold">RUT</label>
-                    <input type="text" id="rut" name="rut" class="w-full border rounded px-3 py-2" required>
+                    <input type="text" id="rut" name="rut" placeholder="Ej. 12345678-9" class="w-full border rounded px-3 py-2" required>
                 </div>
                 <div>
                     <label for="nombre" class="block mb-1 font-semibold">Primer Nombre</label>
@@ -54,9 +54,70 @@
         </div>
     </div>
     <script>
+    // Valida RUT chileno
+    function validarRut(rut) {
+        rut = rut.replace(/\./g, '').replace('-', '');
+        if (rut.length < 8) return false;
+        let cuerpo = rut.slice(0, -1);
+        let dv = rut.slice(-1).toUpperCase();
+        let suma = 0, multiplo = 2;
+        for (let i = cuerpo.length - 1; i >= 0; i--) {
+            suma += parseInt(cuerpo[i]) * multiplo;
+            multiplo = multiplo < 7 ? multiplo + 1 : 2;
+        }
+        let dvEsperado = 11 - (suma % 11);
+        dvEsperado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+        return dv === dvEsperado;
+    }
+
     document.getElementById('registro-form').onsubmit = async function(e) {
         e.preventDefault();
         const form = e.target;
+        const mensaje = document.getElementById('registro-mensaje');
+        mensaje.textContent = "";
+
+        // Validaciones
+        if (!validarRut(form.rut.value)) {
+            mensaje.textContent = "RUT inválido.";
+            form.rut.focus();
+            return;
+        }
+        if (!form.nombre.value.trim()) {
+            mensaje.textContent = "El primer nombre es obligatorio.";
+            form.nombre.focus();
+            return;
+        }
+        if (!form.apellido_p.value.trim()) {
+            mensaje.textContent = "El apellido paterno es obligatorio.";
+            form.apellido_p.focus();
+            return;
+        }
+        if (!form.apellido_m.value.trim()) {
+            mensaje.textContent = "El apellido materno es obligatorio.";
+            form.apellido_m.focus();
+            return;
+        }
+        if (!form.email.value.match(/^[^@]+@[^@]+\.[a-zA-Z]{2,}$/)) {
+            mensaje.textContent = "Correo electrónico inválido.";
+            form.email.focus();
+            return;
+        }
+        if (!form.fono.value.match(/^\d{8,15}$/)) {
+            mensaje.textContent = "Teléfono inválido (solo números, 8 a 15 dígitos).";
+            form.fono.focus();
+            return;
+        }
+        if (!form.direccion.value.trim()) {
+            mensaje.textContent = "La dirección es obligatoria.";
+            form.direccion.focus();
+            return;
+        }
+        if (form.password.value.length < 6) {
+            mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+            form.password.focus();
+            return;
+        }
+
         const datos = {
             rut: form.rut.value,
             nombre: form.nombre.value,
@@ -79,16 +140,16 @@
             });
             const data = await res.json();
             if (res.ok) {
-                document.getElementById('registro-mensaje').textContent = "¡Registro exitoso! Ahora puedes iniciar sesión.";
-                    setTimeout(() => {
-                        window.location.href = "{% url 'login' %}";
-                    }, 1500); // 1.5 segundos de espera para mostrar el mensaje
-                    form.reset();
+                mensaje.textContent = "¡Registro exitoso! Ahora puedes iniciar sesión.";
+                setTimeout(() => {
+                    window.location.href = "{% url 'login' %}";
+                }, 1500);
+                form.reset();
             } else {
-                document.getElementById('registro-mensaje').textContent = data.detail || "Error al registrar usuario.";
+                mensaje.textContent = data.detail || "Error al registrar usuario.";
             }
         } catch (err) {
-            document.getElementById('registro-mensaje').textContent = "Error de conexión con el servidor.";
+            mensaje.textContent = "Error de conexión con el servidor.";
         }
         btn.disabled = false;
         btn.textContent = "Registrarse";

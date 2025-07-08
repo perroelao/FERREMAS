@@ -28,32 +28,34 @@
                         <td class="py-2 px-4 border-b">{{ pedido.fecha_pedido }}</td>
                         <td class="py-2 px-4 border-b">${{ pedido.total|floatformat:0 }}</td>
                         <td class="py-2 px-4 border-b">
-                            {% if pedido.estado.nombre == "Pendiente" %}
-                                <span class="text-yellow-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
-                            {% elif pedido.estado.nombre == "Completado" or pedido.estado.nombre == "Entregado" %}
-                                <span class="text-green-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
-                            {% elif pedido.estado.nombre == "Cancelado" or pedido.estado.nombre == "Rechazado" %}
-                                <span class="text-red-600 font-semibold">{{ pedido.estado.nombre|capfirst }}</span>
+                            {% if pedido.estado_pedido %}
+                                {% if pedido.estado_pedido == "Pendiente" %}
+                                    <span class="text-yellow-600 font-semibold">{{ pedido.estado_pedido|capfirst }}</span>
+                                {% elif pedido.estado_pedido == "Completado" or pedido.estado_pedido == "Entregado" %}
+                                    <span class="text-green-600 font-semibold">{{ pedido.estado_pedido|capfirst }}</span>
+                                {% elif pedido.estado_pedido == "Cancelado" or pedido.estado_pedido == "Rechazado" %}
+                                    <span class="text-red-600 font-semibold">{{ pedido.estado_pedido|capfirst }}</span>
+                                {% else %}
+                                    {{ pedido.estado_pedido|capfirst }}
+                                {% endif %}
                             {% else %}
-                                {{ pedido.estado.nombre|capfirst }}
+                                <span class="text-gray-500">Sin estado</span>
                             {% endif %}
                         </td>
                         <td class="py-2 px-4 border-b">
-                            {% with pago=pedido.pago_set.first %}
-                                {% if pago %}
-                                    {% if pago.estado_pago.nombre == "Pendiente" %}
-                                        <span class="text-yellow-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
-                                    {% elif pago.estado_pago.nombre == "Pagado" %}
-                                        <span class="text-green-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
-                                    {% elif pago.estado_pago.nombre == "Rechazado" %}
-                                        <span class="text-red-600 font-semibold">{{ pago.estado_pago.nombre|capfirst }}</span>
-                                    {% else %}
-                                        {{ pago.estado_pago.nombre|capfirst }}
-                                    {% endif %}
+                            {% if pedido.estado_pago %}
+                                {% if pedido.estado_pago == "Pendiente" %}
+                                    <span class="text-yellow-600 font-semibold">{{ pedido.estado_pago|capfirst }}</span>
+                                {% elif pedido.estado_pago == "Pagado" %}
+                                    <span class="text-green-600 font-semibold">{{ pedido.estado_pago|capfirst }}</span>
+                                {% elif pedido.estado_pago == "Rechazado" %}
+                                    <span class="text-red-600 font-semibold">{{ pedido.estado_pago|capfirst }}</span>
                                 {% else %}
-                                    <span class="text-gray-500">Sin pago</span>
+                                    {{ pedido.estado_pago|capfirst }}
                                 {% endif %}
-                            {% endwith %}
+                            {% else %}
+                                <span class="text-gray-500">Sin pago</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
@@ -69,3 +71,4 @@
         </div>
     </main>
 </body>
+</html>

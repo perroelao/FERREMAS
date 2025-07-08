@@ -13,9 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 
-# -------------------------------------------------------------------
-# 9.  Transferencias pendientes para contador
-# -------------------------------------------------------------------
+
 def home(request):
     return render(request, 'core/index.html')
 
@@ -84,7 +82,7 @@ def gestion_pedidos(request):
             FROM PEDIDO ped
             JOIN ESTADO e ON ped.estado_id = e.estado_id
             JOIN USUARIO u ON ped.cliente_id = u.id_usuario
-            WHERE ped.estado_id NOT IN (3, 4)
+            WHERE ped.estado_id = 1 -- Pendiente
             ORDER BY ped.fecha_pedido DESC
         """)
         pedidos = dictfetchall(cursor)
@@ -159,13 +157,13 @@ def editar_usuario(request, id_actualizar):
             'apellido_m': request.POST['apellido_m'],
             'snombre': request.POST['snombre'],
             'email': request.POST['email'],
-            'telefono': request.POST['telefono'],
+            'fono': request.POST['telefono'],
             'direccion': request.POST['direccion'],
             'password': request.POST['password'],
-            'rol': request.POST['rol'],
+            'rol_id': int(request.POST['rol']),
         }
         url = f'http://localhost:8001/usuarios/{id_actualizar}'
-        response = requests.put(url, json=data)
+        response = requests.put(url, params=data)
         if response.status_code == 200:
             messages.success(request, 'Usuario actualizado correctamente')
         else:
@@ -573,10 +571,10 @@ def capturar_pago_paypal_view(request):
 
             # 3. Actualiza el estado del pago y pedido
             estado_pago_pagado = EstadoPago.objects.get(nombre__iexact="pagado")
-            estado_pedido_completado = Estado.objects.get(nombre__iexact="completado")
+            #estado_pedido_completado = Estado.objects.get(nombre__iexact="completado")
             pago.estado_pago = estado_pago_pagado
             pago.save()
-            pedido.estado = estado_pedido_completado
+            #pedido.estado = estado_pedido_completado
             pedido.save()
 
             return JsonResponse({"status": "Pago capturado y pedido actualizado", "paypal": resultado})
@@ -614,7 +612,12 @@ def detalle_entrega_ajax(request, pedido_id):
     pedido = Pedido.objects.get(pedido_id=pedido_id)
     return JsonResponse({
         "cliente_id": pedido.cliente.id_usuario,
+        "cliente_nombre": f"{pedido.cliente.nombre} {pedido.cliente.apellido_p}",
         "pedido_id": pedido.pedido_id,
+        "direccion_entrega": pedido.cliente.direccion,  # o el campo que uses
+        "tipo_despacho": pedido.tipo_despacho.nombre,
+        "sucursal": pedido.sucursal.nombre if pedido.sucursal else None,
+
     })
 
 def agregar_producto(request):
@@ -713,7 +716,33 @@ def registro_cliente(request):
 
 def historial_pedidos(request):
     usuario_id = request.session.get('usuario_id')
-    pedidos = Pedido.objects.filter(cliente_id=usuario_id).order_by('-fecha_pedido')
+    pedidos = []
+    if usuario_id:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    ped.pedido_id,
+                    ped.fecha_pedido,
+                    ped.total,
+                    ep.nombre AS estado_pedido,
+                    COALESCE(epa.nombre, 'Sin pago') AS estado_pago
+                FROM PEDIDO ped
+                JOIN ESTADO ep ON ped.estado_id = ep.estado_id
+                LEFT JOIN PAGO p ON p.pedido_id = ped.pedido_id
+                LEFT JOIN ESTADO_PAGO epa ON p.estado_pago_id = epa.estado_pago_id
+                WHERE ped.cliente_id = %s
+                ORDER BY ped.fecha_pedido DESC
+            """, [usuario_id])
+            pedidos = [
+                {
+                    "pedido_id": row[0],
+                    "fecha_pedido": row[1],
+                    "total": row[2],
+                    "estado_pedido": row[3],
+                    "estado_pago": row[4],
+                }
+                for row in cursor.fetchall()
+            ]
     return render(request, "core/historial_pedidos.html", {"pedidos": pedidos})
 
 def cambiar_password_admin(request):

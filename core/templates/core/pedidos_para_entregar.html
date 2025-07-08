@@ -76,28 +76,35 @@
         {% endif %}
     </main>
     <script>
-    function toggleDetalleEntrega(pedidoId, btn) {
-        const fila = document.getElementById('detalle-entrega-' + pedidoId);
-        if (fila.classList.contains('hidden')) {
-            fila.classList.remove('hidden');
-            const content = document.getElementById('detalle-content-entrega-' + pedidoId);
-            if (!content.dataset.loaded) {
-                fetch(`/ajax/detalle_entrega/${pedidoId}/`)
-                    .then(res => res.json())
-                    .then(data => {
-                    content.innerHTML = `<span class="text-gray-700 font-semibold">ID Pedido: ${pedidoId} &nbsp; | &nbsp; ID Cliente: ${data.cliente_id}</span>`;                        content.dataset.loaded = "1";
-                    });
-            }
-            btn.textContent = "Ocultar Detalle";
-            btn.classList.remove("bg-blue-600");
-            btn.classList.add("bg-gray-600");
-        } else {
-            fila.classList.add('hidden');
-            btn.textContent = "Ver Detalle";
-            btn.classList.remove("bg-gray-600");
-            btn.classList.add("bg-blue-600");
+function toggleDetalleEntrega(pedidoId, btn) {
+    const fila = document.getElementById('detalle-entrega-' + pedidoId);
+    if (fila.classList.contains('hidden')) {
+        fila.classList.remove('hidden');
+        const content = document.getElementById('detalle-content-entrega-' + pedidoId);
+        if (!content.dataset.loaded) {
+            fetch(`/ajax/detalle_entrega/${pedidoId}/`)
+                .then(res => res.json())
+                .then(data => {
+                    let extra = "";
+                    if (data.tipo_despacho === "Despacho a domicilio") {
+                        extra = `<br><span class="text-gray-700">Dirección de entrega: <b>${data.direccion_entrega}</b></span>`;
+                    } else if (data.tipo_despacho === "Retiro en tienda") {
+                        extra = `<br><span class="text-gray-700">Sucursal para retiro: <b>${data.sucursal}</b></span>`;
+                    }
+                    content.innerHTML = `<span class="text-gray-700 font-semibold">ID Pedido: ${pedidoId} &nbsp; | &nbsp; Cliente: ${data.cliente_nombre} &nbsp; | &nbsp; ID Cliente:&nbsp;${data.cliente_id} &nbsp;</span>| &nbsp;${extra}`;
+                    content.dataset.loaded = "1";
+                });
         }
+        btn.textContent = "Ocultar Detalle";
+        btn.classList.remove("bg-blue-600");
+        btn.classList.add("bg-gray-600");
+    } else {
+        fila.classList.add('hidden');
+        btn.textContent = "Ver Detalle";
+        btn.classList.remove("bg-gray-600");
+        btn.classList.add("bg-blue-600");
     }
+}
 </script>
 </body>
 </html>

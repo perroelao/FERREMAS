@@ -301,5 +301,38 @@ function previewImagen(event) {
         }
     }
     </script>
+    <script>
+// Validación para el formulario de agregar producto
+document.querySelector('form[action="{% url "agregar_producto" %}"]').onsubmit = function(e) {
+    const form = this;
+    let mensaje = "";
+
+    if (!form.nombre.value.trim()) {
+        mensaje = "El nombre del producto es obligatorio.";
+        form.nombre.focus();
+    } else if (!form.precio.value || isNaN(form.precio.value) || Number(form.precio.value) <= 0) {
+        mensaje = "El precio debe ser un número mayor a 0.";
+        form.precio.focus();
+    } else if (!form.stock.value || isNaN(form.stock.value) || Number(form.stock.value) < 0) {
+        mensaje = "El stock debe ser un número igual o mayor a 0.";
+        form.stock.focus();
+    } else if (!form.imagen_file.value) {
+        mensaje = "Debes seleccionar una imagen.";
+        form.imagen_file.focus();
+    } else if (!form.categoria_id.value) {
+        mensaje = "Debes seleccionar una categoría.";
+        form.categoria_id.focus();
+    } else if (!form.marca_id.value) {
+        mensaje = "Debes seleccionar una marca.";
+        form.marca_id.focus();
+    }
+
+    if (mensaje) {
+        alert(mensaje);
+        e.preventDefault();
+        return false;
+    }
+};
+</script>
 </body>
 </html>
