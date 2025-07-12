@@ -38,4 +38,5 @@ urlpatterns = [
     path('historial_pedidos/', views.historial_pedidos, name='historial_pedidos'),
     path('cambiar_password_admin/', views.cambiar_password_admin, name='cambiar_password_admin'),
     path('buscar/', views.busqueda_productos, name='busqueda_productos'),
+    path('perfil/', views.perfil_usuario, name='perfil_usuario'),
 ]

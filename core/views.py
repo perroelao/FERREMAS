@@ -797,3 +797,14 @@ def detalle_producto(request, producto_id):
         'producto': producto,
         'todos_productos': todos_productos
     })
+
+from django.shortcuts import render, redirect
+from .models import Usuario
+
+def perfil_usuario(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login')
+    usuario = Usuario.objects.get(id_usuario=usuario_id)
+    # Ya no actualices aquí, solo muestra el perfil
+    return render(request, "core/perfil_usuario.html", {"usuario": usuario})

@@ -37,26 +37,59 @@
                         <span class="cart-count absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">0</span>
                     </a>
                     <button id="convert-to-usd" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
-                        Convertir a USD
+                        USD $
                     </button>
                     <button id="toclp" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
-                        Convertir a CLP
+                        CLP $
                     </button>
                     {% if request.session.usuario_id %}
-                        <form action="{% url 'logout' %}" method="post" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
-                                Cerrar sesión
-                            </button>
-                        </form>
+                    <div class="relative" id="user-dropdown-container">
+                        <button id="user-dropdown-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow flex items-center gap-2 focus:outline-none transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            Mi Cuenta
+                            <svg class="w-4 h-4 ml-1 transition-transform duration-200" id="user-dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div id="user-dropdown-menu" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 opacity-0 pointer-events-none transform scale-95 transition-all duration-200">
+                            <a href="{% url 'perfil_usuario' %}" class="block px-5 py-3 text-gray-700 hover:bg-orange-100 hover:text-orange-600 rounded-t-xl transition">👤 Mi Perfil</a>
+                            <a href="{% url 'historial_pedidos' %}" class="block px-5 py-3 text-gray-700 hover:bg-orange-100 hover:text-orange-600 transition">📦 Historial de Pedidos</a>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-5 py-3 text-gray-700 hover:bg-orange-100 hover:text-orange-600 rounded-b-xl transition">🔒 Cerrar sesión</button>
+                            </form>
+                        </div>
+                    </div>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const btn = document.getElementById('user-dropdown-btn');
+                        const menu = document.getElementById('user-dropdown-menu');
+                        const arrow = document.getElementById('user-dropdown-arrow');
+                        let open = false;
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            open = !open;
+                            if (open) {
+                                menu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                                menu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+                                arrow.classList.add('rotate-180');
+                            } else {
+                                menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                                menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                                arrow.classList.remove('rotate-180');
+                            }
+                        });
+                        document.addEventListener('click', function(e) {
+                            if (!document.getElementById('user-dropdown-container').contains(e.target)) {
+                                open = false;
+                                menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                                menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                                arrow.classList.remove('rotate-180');
+                            }
+                        });
+                    });
+                    </script>
                     {% else %}
                         <a href="{% url 'login' %}" aria-label="Iniciar sesión o ver perfil de usuario" class="text-gray-600 hover:text-orange-600 p-2 rounded-full hover:bg-gray-100 transition-colors user-icon">
                             Iniciar sesión
-                        </a>
-                    {% endif %}
-                    {% if request.session.usuario_id %}
-                        <a href="{% url 'historial_pedidos' %}" class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
-                            Ver Historial de Pedidos
                         </a>
                     {% endif %}
                     <button id="mobile-menu-button" aria-label="Abrir menú de navegación" aria-expanded="false" class="md:hidden p-2 text-gray-600 hover:text-orange-600">

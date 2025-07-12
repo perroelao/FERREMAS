@@ -110,7 +110,7 @@ CREATE TABLE USUARIO (
     debe_cambiar_password NUMBER(1) NOT NULL,
     rol_id number(1) NOT NULL,
     CONSTRAINT USUARIO_ROL_FK FOREIGN KEY (rol_id)
-	REFERENCES ROL(rol_id) ON DELETE CASCADE
+    REFERENCES ROL(rol_id) ON DELETE CASCADE
 );
 
 -- Tabla TIPO_DESPACHO
@@ -237,6 +237,18 @@ VALUES (3, '34567890-1', 'Carlos', 'Gómez', 'Vega', 'Javier', 'carlos.gomez@gma
 INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
 VALUES (6, '67890123-4', 'Carla', 'Fernández', 'Muñoz', 'Gabriela', 'carla.fernandez@gmail.com', '956789012', 'Calle San Martín 987, Temuco, Chile', 'carla', 1, 3);
 
+-- Usuario Cliente: Juan Pérez
+INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
+VALUES (1, '12345678-9', 'Juan', 'Pérez', 'García', 'Andrés', 'juan.perez@gmail.com', '912345678', 'Av. Providencia 123, Santiago, Chile', 'juan', 0, 1);
+
+-- Usuario Bodeguero: Luis Méndez
+INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
+VALUES (4, '23456789-0', 'Luis', 'Méndez', 'Torres', 'Felipe', 'luis.mendez@gmail.com', '922345679', 'Calle Los Pinos 456, Concepción, Chile', 'luis', 0, 4);
+
+-- Usuario Contador: Sofía Ramírez
+INSERT INTO USUARIO (id_usuario, rut, nombre, apellido_p, apellido_m, snombre, email, fono, direccion, password, debe_cambiar_password, rol_id)
+VALUES (7, '34567890-2', 'Sofía', 'Ramírez', 'López', 'María', 'sofia.ramirez@gmail.com', '932345680', 'Av. Argentina 789, Valparaíso, Chile', 'sofia', 0, 5);
+
 
 -- REGIONES
 INSERT INTO REGION (region_id, nombre) VALUES (1, 'Región Metropolitana');
@@ -302,6 +314,19 @@ INSERT INTO SUCURSAL (sucursal_id, nombre, direccion, comuna_id, fono, responsab
 
 -- PRODUCTOS
 
+-- Productos con imágenes .webp
+INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, stock, categoria_id, marca_id, imagen)
+VALUES (1, 'Clavos', 'Clavos de acero para carpintería y construcción', 1200, 50, 4, 1, '/static/assets/img/clavos.webp');
+
+INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, stock, categoria_id, marca_id, imagen)
+VALUES (2, 'Destornillador', 'Destornillador de punta plana profesional', 2500, 20, 1, 3, '/static/assets/img/destornillador.webp');
+
+INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, stock, categoria_id, marca_id, imagen)
+VALUES (3, 'Martillo', 'Martillo de carpintero con mango ergonómico', 4990, 15, 1, 1, '/static/assets/img/martillo.webp');
+
+INSERT INTO PRODUCTO (producto_id, nombre, descripcion, precio, stock, categoria_id, marca_id, imagen)
+VALUES (4, 'Taladro', 'Taladro eléctrico de alta potencia', 34990, 50, 2, 2, '/static/assets/img/taladro.webp');
+
 
 INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (1, 'Despacho a domicilio');
 INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (2, 'Retiro en tienda');
@@ -313,3 +338,4 @@ INSERT INTO TIPO_DESPACHO (tipo_despacho_id, nombre) VALUES (2, 'Retiro en tiend
 -- PAGOS
 
 commit;
+
